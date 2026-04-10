@@ -119,10 +119,10 @@ a { text-decoration: none; color: inherit; transition: var(--transition); }
 .categories-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 30px; }
 .category-card { position: relative; border-radius: 12px; overflow: hidden; min-height: 420px; display: flex; align-items: flex-end; }
 .category-card img.category-bg { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; }
-.category-gold { background: linear-gradient(135deg, var(--emerald-dark) 0%, var(--emerald) 100%); }
-.category-silver { background: linear-gradient(135deg, var(--emerald-dark) 0%, var(--emerald) 100%); }
-.category-overlay { position: absolute; inset: 0; background: linear-gradient(to top, rgba(6,78,56,0.92) 0%, rgba(6,78,56,0.5) 50%, rgba(6,78,56,0.2) 100%); transition: var(--transition); z-index: 1; }
-.category-card:hover .category-overlay { background: linear-gradient(to top, rgba(6,78,56,0.95) 0%, rgba(6,78,56,0.6) 50%, rgba(6,78,56,0.3) 100%); }
+.category-gold { background: linear-gradient(135deg, var(--emerald-dark) 0%, var(--emerald) 60%, var(--emerald-light) 100%); }
+.category-silver { background: linear-gradient(135deg, var(--emerald-dark) 0%, var(--emerald) 60%, var(--emerald-light) 100%); }
+.category-overlay { position: absolute; inset: 0; background: rgba(0,0,0,0.05); transition: var(--transition); z-index: 1; }
+.category-card:hover .category-overlay { background: rgba(0,0,0,0.12); }
 .category-content { position: relative; padding: 40px; color: var(--white); z-index: 2; }
 .category-label { font-size: 0.8rem; text-transform: uppercase; letter-spacing: 3px; opacity: 0.8; }
 .category-gold .category-content h3 { font-family: var(--font-display); font-size: 1.8rem; margin: 8px 0 12px; color: var(--gold-light); }
@@ -308,7 +308,6 @@ a { text-decoration: none; color: inherit; transition: var(--transition); }
             <p class="section-subtitle">Descubre nuestras colecciones en los más finos materiales</p>
             <div class="categories-grid">
                 <a href="categoria.html?tipo=oro" class="category-card category-gold">
-                    <img src="assets/images/set-oro-gota.jpeg" alt="Joyería en Oro" class="category-bg">
                     <div class="category-overlay"></div>
                     <div class="category-content">
                         <span class="category-label">Colección</span>
@@ -318,7 +317,6 @@ a { text-decoration: none; color: inherit; transition: var(--transition); }
                     </div>
                 </a>
                 <a href="categoria.html?tipo=plata" class="category-card category-silver">
-                    <img src="assets/images/set-plata-cuadrado.jpeg" alt="Joyería en Plata" class="category-bg">
                     <div class="category-overlay"></div>
                     <div class="category-content">
                         <span class="category-label">Colección</span>
