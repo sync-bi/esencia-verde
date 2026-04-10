@@ -57,8 +57,7 @@ a { text-decoration: none; color: inherit; transition: var(--transition); }
 .header.scrolled { box-shadow: 0 2px 20px rgba(0,0,0,0.08); }
 .header-inner { display: flex; align-items: center; justify-content: space-between; height: 95px; }
 .logo { display: flex; align-items: center; }
-.logo-text { font-family: var(--font-display); font-size: 1.6rem; font-weight: 700; color: var(--emerald-dark); line-height: 1.2; text-transform: uppercase; letter-spacing: 2px; }
-.logo-text span { display: block; font-size: 0.7rem; font-weight: 400; letter-spacing: 4px; color: var(--gold); text-transform: uppercase; margin-top: 2px; }
+.logo img { height: 85px; width: auto; }
 .nav { display: flex; align-items: center; gap: 6px; }
 .nav-link { font-family: var(--font-body); font-size: 0.85rem; font-weight: 500; color: var(--emerald-dark); padding: 8px 14px; border-radius: var(--radius); letter-spacing: 0.3px; text-transform: uppercase; }
 .nav-link:hover, .nav-link.active { color: var(--emerald); background: rgba(11,110,79,0.06); }
@@ -249,7 +248,7 @@ a { text-decoration: none; color: inherit; transition: var(--transition); }
     <header class="header" id="header">
         <div class="container header-inner">
             <a href="#inicio" class="logo">
-                <div class="logo-text">ESENCIA VERDE<span>Jewelry Store</span></div>
+                <img src="assets/images/logo.jpeg" alt="Esencia Verde">
             </a>
             <nav class="nav" id="nav">
                 <a href="#inicio" class="nav-link active">Inicio</a>
