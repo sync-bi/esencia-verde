@@ -1,0 +1,615 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Esencia Verde - Jewelry Store | Joyería en Oro, Plata y Esmeraldas Colombianas</title>
+    <meta name="description" content="Esencia Verde - Joyería exclusiva en oro, plata y esmeraldas colombianas. Diseños únicos que cuentan historias.">
+    <link rel="icon" type="image/jpeg" href="assets/images/logo.jpeg">
+    <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;500;600;700&family=Lato:wght@300;400;500;600&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+    <style>
+:root {
+    --emerald: #0B6E4F;
+    --emerald-dark: #064E38;
+    --emerald-light: #0D8B63;
+    --gold: #C9A84C;
+    --gold-light: #D4B96A;
+    --ivory: #FFFFF0;
+    --ivory-dark: #F5F5E8;
+    --cream: #FAF8F0;
+    --white: #FFFFFF;
+    --black: #1A1A1A;
+    --gray: #6B6B6B;
+    --gray-light: #E8E8E0;
+    --font-display: 'Playfair Display', Georgia, serif;
+    --font-body: 'Lato', 'Segoe UI', sans-serif;
+    --shadow: 0 4px 20px rgba(0,0,0,0.08);
+    --shadow-lg: 0 10px 40px rgba(0,0,0,0.12);
+    --radius: 8px;
+    --transition: all 0.3s ease;
+}
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+html { scroll-behavior: smooth; scroll-padding-top: 80px; }
+body {
+    font-family: var(--font-body);
+    color: var(--black);
+    background: var(--cream);
+    line-height: 1.7;
+    overflow-x: hidden;
+}
+img { max-width: 100%; height: auto; display: block; }
+a { text-decoration: none; color: inherit; transition: var(--transition); }
+.container { max-width: 1200px; margin: 0 auto; padding: 0 24px; }
+
+/* HEADER */
+.header {
+    position: fixed; top: 0; left: 0; right: 0; z-index: 1000;
+    background: rgba(255,255,240,0.95); backdrop-filter: blur(12px);
+    border-bottom: 1px solid rgba(11,110,79,0.1); transition: var(--transition);
+}
+.header.scrolled { box-shadow: 0 2px 20px rgba(0,0,0,0.08); }
+.header-inner { display: flex; align-items: center; justify-content: space-between; height: 80px; }
+.logo img { height: 60px; width: auto; border-radius: 4px; }
+.nav { display: flex; align-items: center; gap: 8px; }
+.nav-link {
+    font-family: var(--font-body); font-size: 0.9rem; font-weight: 500;
+    color: var(--emerald-dark); padding: 8px 16px; border-radius: var(--radius);
+    letter-spacing: 0.3px; text-transform: uppercase;
+}
+.nav-link:hover, .nav-link.active { color: var(--emerald); background: rgba(11,110,79,0.06); }
+.nav-link i { font-size: 0.65rem; margin-left: 4px; }
+.nav-dropdown { position: relative; }
+.dropdown-menu {
+    position: absolute; top: 100%; left: 0; background: var(--white);
+    border-radius: var(--radius); box-shadow: var(--shadow-lg); min-width: 200px;
+    padding: 8px 0; opacity: 0; visibility: hidden; transform: translateY(8px); transition: var(--transition);
+}
+.nav-dropdown:hover .dropdown-menu { opacity: 1; visibility: visible; transform: translateY(0); }
+.dropdown-menu a { display: block; padding: 10px 20px; font-size: 0.88rem; color: var(--black); font-weight: 400; }
+.dropdown-menu a:hover { background: rgba(11,110,79,0.06); color: var(--emerald); }
+.header-actions { display: flex; align-items: center; gap: 12px; }
+.btn-whatsapp {
+    display: flex; align-items: center; gap: 6px; background: #25D366;
+    color: var(--white); padding: 8px 18px; border-radius: 50px; font-size: 0.85rem; font-weight: 600;
+}
+.btn-whatsapp:hover { background: #1EBE5A; transform: translateY(-1px); }
+.menu-toggle { display: none; flex-direction: column; gap: 5px; background: none; border: none; cursor: pointer; padding: 8px; }
+.menu-toggle span { width: 24px; height: 2px; background: var(--emerald-dark); border-radius: 2px; transition: var(--transition); }
+
+/* BUTTONS */
+.btn {
+    display: inline-flex; align-items: center; gap: 8px; padding: 14px 32px; border-radius: 4px;
+    font-family: var(--font-body); font-size: 0.95rem; font-weight: 600; letter-spacing: 0.5px;
+    text-transform: uppercase; cursor: pointer; border: 2px solid transparent; transition: var(--transition);
+}
+.btn-primary { background: var(--emerald); color: var(--white); border-color: var(--emerald); }
+.btn-primary:hover { background: var(--emerald-dark); border-color: var(--emerald-dark); transform: translateY(-2px); box-shadow: 0 6px 20px rgba(11,110,79,0.3); }
+.btn-secondary { background: transparent; color: var(--white); border-color: var(--white); }
+.btn-secondary:hover { background: var(--white); color: var(--emerald); transform: translateY(-2px); }
+.btn-outline { background: transparent; color: var(--white); border-color: rgba(255,255,255,0.5); font-size: 0.85rem; padding: 10px 24px; }
+.btn-outline:hover { border-color: var(--white); background: rgba(255,255,255,0.1); }
+.btn-full { width: 100%; justify-content: center; }
+
+/* HERO */
+.hero {
+    position: relative; min-height: 100vh; display: flex; align-items: center; justify-content: center;
+    background: linear-gradient(135deg, var(--emerald-dark) 0%, var(--emerald) 40%, var(--emerald-light) 100%);
+    overflow: hidden;
+}
+.hero-overlay {
+    position: absolute; inset: 0;
+    background: radial-gradient(ellipse at 70% 50%, rgba(201,168,76,0.15) 0%, transparent 60%),
+                radial-gradient(ellipse at 30% 80%, rgba(0,0,0,0.2) 0%, transparent 50%);
+}
+.hero-content { position: relative; text-align: center; color: var(--white); max-width: 700px; padding: 0 24px; animation: fadeInUp 1s ease; }
+.hero-title { font-family: var(--font-body); font-size: 1.1rem; font-weight: 300; letter-spacing: 4px; text-transform: uppercase; margin-bottom: 8px; opacity: 0.9; }
+.hero-subtitle { font-family: var(--font-display); font-size: 3.5rem; font-weight: 700; line-height: 1.15; margin-bottom: 20px; }
+.hero-subtitle span { color: var(--gold-light); font-style: italic; }
+.hero-text { font-size: 1.1rem; font-weight: 300; opacity: 0.9; margin-bottom: 36px; line-height: 1.8; }
+.hero-buttons { display: flex; gap: 16px; justify-content: center; flex-wrap: wrap; }
+.hero-scroll { position: absolute; bottom: 32px; left: 50%; transform: translateX(-50%); animation: bounce 2s infinite; }
+.hero-scroll a { color: rgba(255,255,255,0.6); font-size: 1.2rem; }
+.hero-scroll a:hover { color: var(--white); }
+@keyframes fadeInUp { from { opacity: 0; transform: translateY(30px); } to { opacity: 1; transform: translateY(0); } }
+@keyframes bounce { 0%, 100% { transform: translateX(-50%) translateY(0); } 50% { transform: translateX(-50%) translateY(10px); } }
+
+/* SECTION TITLES */
+.section-title { font-family: var(--font-display); font-size: 2.2rem; font-weight: 600; color: var(--emerald-dark); text-align: center; margin-bottom: 8px; }
+.section-title.text-left { text-align: left; }
+.section-subtitle { font-size: 1rem; color: var(--gray); text-align: center; font-weight: 300; margin-bottom: 48px; }
+
+/* CATEGORIES */
+.categories { padding: 100px 0; background: var(--cream); }
+.categories-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 30px; }
+.category-card { position: relative; border-radius: 12px; overflow: hidden; min-height: 420px; display: flex; align-items: flex-end; background-size: cover; background-position: center; }
+.category-gold { background: linear-gradient(135deg, #B8860B 0%, #D4A030 50%, #C9A84C 100%); }
+.category-silver { background: linear-gradient(135deg, #71797E 0%, #A9A9A9 50%, #C0C0C0 100%); }
+.category-overlay { position: absolute; inset: 0; background: linear-gradient(to top, rgba(0,0,0,0.7) 0%, rgba(0,0,0,0.1) 60%, transparent 100%); transition: var(--transition); }
+.category-card:hover .category-overlay { background: linear-gradient(to top, rgba(11,110,79,0.8) 0%, rgba(11,110,79,0.2) 60%, transparent 100%); }
+.category-content { position: relative; padding: 40px; color: var(--white); }
+.category-label { font-size: 0.8rem; text-transform: uppercase; letter-spacing: 3px; opacity: 0.8; }
+.category-content h3 { font-family: var(--font-display); font-size: 1.8rem; margin: 8px 0 12px; }
+.category-content p { font-size: 0.95rem; opacity: 0.85; margin-bottom: 20px; font-weight: 300; }
+
+/* EXCLUSIVE */
+.exclusive { padding: 100px 0; background: var(--ivory); }
+.exclusive-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 28px; }
+.exclusive-card { background: var(--white); border-radius: 12px; overflow: hidden; box-shadow: var(--shadow); transition: var(--transition); }
+.exclusive-card:hover { transform: translateY(-6px); box-shadow: var(--shadow-lg); }
+.exclusive-img { position: relative; overflow: hidden; aspect-ratio: 1; }
+.exclusive-img img { width: 100%; height: 100%; object-fit: cover; transition: transform 0.5s ease; }
+.exclusive-card:hover .exclusive-img img { transform: scale(1.05); }
+.exclusive-info { padding: 20px; }
+.exclusive-info h4 { font-family: var(--font-display); font-size: 1.05rem; color: var(--emerald-dark); margin-bottom: 6px; }
+.exclusive-info p { font-size: 0.85rem; color: var(--gray); font-weight: 300; }
+
+/* ABOUT */
+.about { padding: 100px 0; background: var(--cream); }
+.about-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 60px; align-items: center; }
+.about-images { position: relative; }
+.about-img-main { border-radius: 12px; box-shadow: var(--shadow-lg); width: 85%; }
+.about-img-secondary { position: absolute; bottom: -30px; right: 0; width: 50%; border-radius: 12px; box-shadow: var(--shadow-lg); border: 4px solid var(--cream); }
+.about-content p { color: var(--gray); margin-bottom: 16px; font-size: 0.98rem; }
+.about-content strong { color: var(--emerald); }
+.about-divider { width: 60px; height: 3px; background: var(--gold); margin: 16px 0 24px; border-radius: 2px; }
+.about-features { margin-top: 32px; display: flex; flex-direction: column; gap: 20px; }
+.about-feature { display: flex; align-items: flex-start; gap: 16px; }
+.about-feature i { font-size: 1.4rem; color: var(--emerald); margin-top: 4px; min-width: 24px; }
+.about-feature h4 { font-size: 0.95rem; color: var(--emerald-dark); margin-bottom: 2px; }
+.about-feature p { font-size: 0.85rem; color: var(--gray); margin-bottom: 0; }
+
+/* CONTACT */
+.contact { padding: 100px 0; background: var(--ivory); }
+.contact-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 50px; }
+.contact-info { display: flex; flex-direction: column; gap: 24px; }
+.contact-item { display: flex; align-items: center; gap: 16px; }
+.contact-icon { width: 50px; height: 50px; background: var(--emerald); color: var(--white); border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 1.2rem; flex-shrink: 0; }
+.contact-item h4 { font-size: 0.9rem; color: var(--emerald-dark); margin-bottom: 2px; }
+.contact-item a, .contact-item p { font-size: 0.95rem; color: var(--gray); }
+.contact-item a:hover { color: var(--emerald); }
+.contact-social { display: flex; gap: 12px; margin-top: 12px; }
+.contact-social a { width: 42px; height: 42px; border: 2px solid var(--emerald); color: var(--emerald); border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 1rem; }
+.contact-social a:hover { background: var(--emerald); color: var(--white); }
+.contact-form { background: var(--white); padding: 36px; border-radius: 12px; box-shadow: var(--shadow); }
+.contact-form h3 { font-family: var(--font-display); font-size: 1.3rem; color: var(--emerald-dark); margin-bottom: 24px; }
+.form-group { margin-bottom: 16px; }
+.form-group input, .form-group select, .form-group textarea {
+    width: 100%; padding: 14px 18px; border: 1px solid var(--gray-light); border-radius: var(--radius);
+    font-family: var(--font-body); font-size: 0.95rem; color: var(--black); background: var(--cream); transition: var(--transition); outline: none;
+}
+.form-group input:focus, .form-group select:focus, .form-group textarea:focus { border-color: var(--emerald); box-shadow: 0 0 0 3px rgba(11,110,79,0.1); }
+.form-group textarea { resize: vertical; }
+
+/* FOOTER */
+.footer { background: var(--emerald-dark); color: rgba(255,255,255,0.8); padding: 60px 0 0; }
+.footer-grid { display: grid; grid-template-columns: 1.5fr 1fr 1fr 1fr; gap: 40px; padding-bottom: 40px; border-bottom: 1px solid rgba(255,255,255,0.1); }
+.footer-logo { height: 50px; border-radius: 4px; margin-bottom: 16px; }
+.footer-brand p { font-size: 0.9rem; line-height: 1.7; opacity: 0.8; }
+.footer-links h4, .footer-contact h4 { color: var(--white); font-size: 0.95rem; text-transform: uppercase; letter-spacing: 1px; margin-bottom: 16px; }
+.footer-links a { display: block; font-size: 0.88rem; padding: 4px 0; opacity: 0.7; }
+.footer-links a:hover { opacity: 1; color: var(--gold-light); }
+.footer-contact p { font-size: 0.88rem; padding: 4px 0; opacity: 0.7; }
+.footer-contact i { margin-right: 8px; width: 16px; }
+.footer-social { display: flex; gap: 10px; margin-top: 16px; }
+.footer-social a { width: 36px; height: 36px; border: 1px solid rgba(255,255,255,0.3); border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 0.85rem; color: rgba(255,255,255,0.7); }
+.footer-social a:hover { background: var(--gold); border-color: var(--gold); color: var(--white); }
+.footer-bottom { text-align: center; padding: 20px 0; font-size: 0.82rem; opacity: 0.6; }
+
+/* WHATSAPP FLOAT */
+.whatsapp-float {
+    position: fixed; bottom: 28px; right: 28px; width: 60px; height: 60px; background: #25D366;
+    color: var(--white); border-radius: 50%; display: flex; align-items: center; justify-content: center;
+    font-size: 1.8rem; box-shadow: 0 4px 16px rgba(37,211,102,0.4); z-index: 999; transition: var(--transition);
+}
+.whatsapp-float:hover { transform: scale(1.1); box-shadow: 0 6px 24px rgba(37,211,102,0.5); }
+
+/* RESPONSIVE */
+@media (max-width: 1024px) {
+    .hero-subtitle { font-size: 2.8rem; }
+    .categories-grid { gap: 20px; }
+    .exclusive-grid { grid-template-columns: repeat(2, 1fr); }
+    .about-grid { gap: 40px; }
+    .footer-grid { grid-template-columns: 1fr 1fr; gap: 30px; }
+}
+@media (max-width: 768px) {
+    .nav, .header-actions { display: none; }
+    .menu-toggle { display: flex; }
+    .nav.open { display: flex; flex-direction: column; position: absolute; top: 80px; left: 0; right: 0; background: var(--ivory); padding: 20px; box-shadow: var(--shadow); border-top: 1px solid var(--gray-light); }
+    .nav.open .nav-link { padding: 12px 16px; width: 100%; }
+    .nav.open .dropdown-menu { position: static; opacity: 1; visibility: visible; transform: none; box-shadow: none; padding-left: 20px; }
+    .hero-subtitle { font-size: 2.2rem; }
+    .hero-title { font-size: 0.95rem; }
+    .categories-grid { grid-template-columns: 1fr; }
+    .category-card { min-height: 300px; }
+    .exclusive-grid { grid-template-columns: 1fr; max-width: 400px; margin: 0 auto; }
+    .about-grid { grid-template-columns: 1fr; }
+    .about-images { order: -1; }
+    .about-img-secondary { position: static; width: 60%; margin-top: -40px; margin-left: auto; }
+    .section-title.text-left { text-align: center; }
+    .about-divider { margin: 16px auto 24px; }
+    .contact-grid { grid-template-columns: 1fr; }
+    .footer-grid { grid-template-columns: 1fr; text-align: center; }
+    .footer-social { justify-content: center; }
+}
+@media (max-width: 480px) {
+    .hero-subtitle { font-size: 1.8rem; }
+    .hero-buttons { flex-direction: column; align-items: center; }
+    .btn { padding: 12px 28px; font-size: 0.88rem; }
+    .section-title { font-size: 1.8rem; }
+    .contact-form { padding: 24px; }
+}
+    </style>
+</head>
+<body>
+
+    <!-- Header / Navegación -->
+    <header class="header" id="header">
+        <div class="container header-inner">
+            <a href="#inicio" class="logo">
+                <img src="assets/images/logo.jpeg" alt="Esencia Verde Logo">
+            </a>
+            <nav class="nav" id="nav">
+                <a href="#inicio" class="nav-link active">Inicio</a>
+                <div class="nav-dropdown">
+                    <a href="#joyeria" class="nav-link">Joyería <i class="fas fa-chevron-down"></i></a>
+                    <div class="dropdown-menu">
+                        <a href="categoria.html?tipo=oro">Joyería en Oro</a>
+                        <a href="categoria.html?tipo=plata">Joyería en Plata</a>
+                    </div>
+                </div>
+                <a href="#exclusivos" class="nav-link">Diseños Exclusivos</a>
+                <a href="#nosotros" class="nav-link">Sobre Nosotros</a>
+                <a href="#contacto" class="nav-link">Contacto</a>
+            </nav>
+            <div class="header-actions">
+                <a href="https://wa.me/573001234567" class="btn-whatsapp" target="_blank" rel="noopener">
+                    <i class="fab fa-whatsapp"></i> WhatsApp
+                </a>
+            </div>
+            <button class="menu-toggle" id="menuToggle" aria-label="Abrir menú">
+                <span></span><span></span><span></span>
+            </button>
+        </div>
+    </header>
+
+    <!-- Hero Section -->
+    <section class="hero" id="inicio">
+        <div class="hero-overlay"></div>
+        <div class="hero-content">
+            <h1 class="hero-title">Joyas exclusivas en</h1>
+            <h2 class="hero-subtitle">Oro, Plata y Esmeraldas<br><span>Colombianas</span></h2>
+            <p class="hero-text">Creamos piezas únicas que cuentan historias y celebran lo más valioso de la vida.</p>
+            <div class="hero-buttons">
+                <a href="categoria.html?tipo=oro" class="btn btn-primary">Explorar Oro</a>
+                <a href="categoria.html?tipo=plata" class="btn btn-secondary">Explorar Plata</a>
+            </div>
+        </div>
+        <div class="hero-scroll">
+            <a href="#joyeria"><i class="fas fa-chevron-down"></i></a>
+        </div>
+    </section>
+
+    <!-- Categorías principales -->
+    <section class="categories" id="joyeria">
+        <div class="container">
+            <h2 class="section-title">Nuestra Joyería</h2>
+            <p class="section-subtitle">Descubre nuestras colecciones en los más finos materiales</p>
+            <div class="categories-grid">
+                <a href="categoria.html?tipo=oro" class="category-card category-gold">
+                    <div class="category-overlay"></div>
+                    <div class="category-content">
+                        <span class="category-label">Colección</span>
+                        <h3>Joyería en Oro</h3>
+                        <p>Piezas exclusivas en oro con esmeraldas colombianas</p>
+                        <span class="btn btn-outline">Ver Colección <i class="fas fa-arrow-right"></i></span>
+                    </div>
+                </a>
+                <a href="categoria.html?tipo=plata" class="category-card category-silver">
+                    <div class="category-overlay"></div>
+                    <div class="category-content">
+                        <span class="category-label">Colección</span>
+                        <h3>Joyería en Plata</h3>
+                        <p>Elegancia y sofisticación en plata de la más alta calidad</p>
+                        <span class="btn btn-outline">Ver Colección <i class="fas fa-arrow-right"></i></span>
+                    </div>
+                </a>
+            </div>
+        </div>
+    </section>
+
+    <!-- Diseños Exclusivos -->
+    <section class="exclusive" id="exclusivos">
+        <div class="container">
+            <h2 class="section-title">Diseños Exclusivos</h2>
+            <p class="section-subtitle">Creamos piezas únicas, diseñadas especialmente para nuestros clientes</p>
+            <div class="exclusive-grid">
+                <div class="exclusive-card">
+                    <div class="exclusive-img">
+                        <img src="assets/images/collar-esmeralda.png" alt="Collar con Esmeralda Natural" loading="lazy">
+                    </div>
+                    <div class="exclusive-info">
+                        <h4>Collar con Esmeralda Natural</h4>
+                        <p>Oro 18k, Esmeralda Colombiana en forma de corazón con diamantes naturales</p>
+                    </div>
+                </div>
+                <div class="exclusive-card">
+                    <div class="exclusive-img">
+                        <img src="assets/images/aretes-certificado.jpeg" alt="Aretes Esmeralda y Diamantes" loading="lazy">
+                    </div>
+                    <div class="exclusive-info">
+                        <h4>Aretes Esmeralda y Diamantes</h4>
+                        <p>Oro 18k, Esmeraldas Naturales certificadas con 26 diamantes naturales</p>
+                    </div>
+                </div>
+                <div class="exclusive-card">
+                    <div class="exclusive-img">
+                        <img src="assets/images/aretes-oro.jpeg" alt="Aretes Colgantes de Esmeralda" loading="lazy">
+                    </div>
+                    <div class="exclusive-info">
+                        <h4>Aretes Colgantes de Esmeralda</h4>
+                        <p>Oro 18k, Esmeraldas Colombianas con halo de diamantes</p>
+                    </div>
+                </div>
+                <div class="exclusive-card">
+                    <div class="exclusive-img">
+                        <img src="assets/images/anillo-esmeralda.png" alt="Anillo Solitario Esmeralda" loading="lazy">
+                    </div>
+                    <div class="exclusive-info">
+                        <h4>Anillo Solitario Esmeralda</h4>
+                        <p>Oro 18k, Esmeralda Natural con diamantes laterales</p>
+                    </div>
+                </div>
+                <div class="exclusive-card">
+                    <div class="exclusive-img">
+                        <img src="assets/images/collar-modelo.png" alt="Collares Layering Esmeralda" loading="lazy">
+                    </div>
+                    <div class="exclusive-info">
+                        <h4>Collares Layering Esmeralda</h4>
+                        <p>Oro 18k, Esmeraldas Colombianas en cortes rectangulares</p>
+                    </div>
+                </div>
+                <div class="exclusive-card">
+                    <div class="exclusive-img">
+                        <img src="assets/images/collar-modelo2.png" alt="Collar Delicado Esmeralda" loading="lazy">
+                    </div>
+                    <div class="exclusive-info">
+                        <h4>Collar Delicado Esmeralda</h4>
+                        <p>Oro 18k, Esmeralda Natural talla esmeralda en cadena delicada</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Sobre Nosotros -->
+    <section class="about" id="nosotros">
+        <div class="container">
+            <div class="about-grid">
+                <div class="about-images">
+                    <img src="assets/images/packaging.jpeg" alt="Esencia Verde - Empaque y certificación" class="about-img-main" loading="lazy">
+                    <img src="assets/images/aretes-esmeralda.png" alt="Esencia Verde - Producto" class="about-img-secondary" loading="lazy">
+                </div>
+                <div class="about-content">
+                    <h2 class="section-title text-left">Sobre Nosotros</h2>
+                    <div class="about-divider"></div>
+                    <p>En <strong>Esencia Verde</strong> somos una joyería especializada en la creación de piezas exclusivas con esmeraldas colombianas, reconocidas mundialmente por su color, brillo y pureza incomparables.</p>
+                    <p>Contamos con años de experiencia trabajando con los más finos materiales: oro de 18 quilates, plata de alta ley y esmeraldas naturales certificadas, directamente desde las minas colombianas.</p>
+                    <p>Nos apasiona el diseño personalizado. Cada pieza que creamos es pensada para contar una historia, celebrar un momento especial y convertirse en un tesoro para toda la vida.</p>
+                    <div class="about-features">
+                        <div class="about-feature">
+                            <i class="fas fa-gem"></i>
+                            <div>
+                                <h4>Esmeraldas Certificadas</h4>
+                                <p>Piedras naturales con certificado de autenticidad</p>
+                            </div>
+                        </div>
+                        <div class="about-feature">
+                            <i class="fas fa-paint-brush"></i>
+                            <div>
+                                <h4>Diseños Personalizados</h4>
+                                <p>Creamos la joya de tus sueños a tu medida</p>
+                            </div>
+                        </div>
+                        <div class="about-feature">
+                            <i class="fas fa-award"></i>
+                            <div>
+                                <h4>Calidad Garantizada</h4>
+                                <p>Materiales de la más alta calidad y acabados perfectos</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Contacto -->
+    <section class="contact" id="contacto">
+        <div class="container">
+            <h2 class="section-title">Contáctanos</h2>
+            <p class="section-subtitle">Estamos aquí para ayudarte a encontrar la joya perfecta</p>
+            <div class="contact-grid">
+                <div class="contact-info">
+                    <div class="contact-item">
+                        <div class="contact-icon"><i class="fab fa-whatsapp"></i></div>
+                        <div>
+                            <h4>WhatsApp</h4>
+                            <a href="https://wa.me/573001234567">+57 300 123 4567</a>
+                        </div>
+                    </div>
+                    <div class="contact-item">
+                        <div class="contact-icon"><i class="fas fa-phone"></i></div>
+                        <div>
+                            <h4>Teléfono</h4>
+                            <a href="tel:+573001234567">+57 300 123 4567</a>
+                        </div>
+                    </div>
+                    <div class="contact-item">
+                        <div class="contact-icon"><i class="fas fa-envelope"></i></div>
+                        <div>
+                            <h4>Correo</h4>
+                            <a href="mailto:info@esenciaverde.com">info@esenciaverde.com</a>
+                        </div>
+                    </div>
+                    <div class="contact-item">
+                        <div class="contact-icon"><i class="fas fa-map-marker-alt"></i></div>
+                        <div>
+                            <h4>Dirección</h4>
+                            <p>Colombia</p>
+                        </div>
+                    </div>
+                    <div class="contact-social">
+                        <a href="#" aria-label="Facebook"><i class="fab fa-facebook-f"></i></a>
+                        <a href="#" aria-label="Instagram"><i class="fab fa-instagram"></i></a>
+                        <a href="#" aria-label="TikTok"><i class="fab fa-tiktok"></i></a>
+                    </div>
+                </div>
+                <form class="contact-form" id="contactForm">
+                    <h3>Escríbenos</h3>
+                    <div class="form-group"><input type="text" name="nombre" placeholder="Tu nombre" required></div>
+                    <div class="form-group"><input type="email" name="email" placeholder="Tu correo electrónico" required></div>
+                    <div class="form-group"><input type="tel" name="telefono" placeholder="Tu teléfono"></div>
+                    <div class="form-group">
+                        <select name="interes">
+                            <option value="">¿En qué estás interesado?</option>
+                            <option value="oro">Joyería en Oro</option>
+                            <option value="plata">Joyería en Plata</option>
+                            <option value="exclusivo">Diseño Exclusivo / Personalizado</option>
+                            <option value="otro">Otro</option>
+                        </select>
+                    </div>
+                    <div class="form-group"><textarea name="mensaje" placeholder="Tu mensaje" rows="4" required></textarea></div>
+                    <button type="submit" class="btn btn-primary btn-full"><i class="fab fa-whatsapp"></i> Enviar por WhatsApp</button>
+                </form>
+            </div>
+        </div>
+    </section>
+
+    <!-- Footer -->
+    <footer class="footer">
+        <div class="container">
+            <div class="footer-grid">
+                <div class="footer-brand">
+                    <img src="assets/images/logo.jpeg" alt="Esencia Verde" class="footer-logo">
+                    <p>Joyería exclusiva en oro, plata y esmeraldas colombianas. Creamos piezas únicas que cuentan historias.</p>
+                </div>
+                <div class="footer-links">
+                    <h4>Navegación</h4>
+                    <a href="#inicio">Inicio</a>
+                    <a href="categoria.html?tipo=oro">Joyería en Oro</a>
+                    <a href="categoria.html?tipo=plata">Joyería en Plata</a>
+                    <a href="#exclusivos">Diseños Exclusivos</a>
+                    <a href="#nosotros">Sobre Nosotros</a>
+                    <a href="#contacto">Contacto</a>
+                </div>
+                <div class="footer-links">
+                    <h4>Categorías</h4>
+                    <a href="categoria.html?tipo=oro&cat=anillos">Anillos</a>
+                    <a href="categoria.html?tipo=oro&cat=aretes">Aretes</a>
+                    <a href="categoria.html?tipo=oro&cat=dijes">Dijes</a>
+                    <a href="categoria.html?tipo=oro&cat=pulseras">Pulseras</a>
+                    <a href="categoria.html?tipo=oro&cat=cadenas">Cadenas</a>
+                    <a href="categoria.html?tipo=oro&cat=sets">Sets</a>
+                </div>
+                <div class="footer-contact">
+                    <h4>Contacto</h4>
+                    <p><i class="fab fa-whatsapp"></i> +57 300 123 4567</p>
+                    <p><i class="fas fa-envelope"></i> info@esenciaverde.com</p>
+                    <div class="footer-social">
+                        <a href="#" aria-label="Facebook"><i class="fab fa-facebook-f"></i></a>
+                        <a href="#" aria-label="Instagram"><i class="fab fa-instagram"></i></a>
+                        <a href="#" aria-label="TikTok"><i class="fab fa-tiktok"></i></a>
+                    </div>
+                </div>
+            </div>
+            <div class="footer-bottom">
+                <p>&copy; 2024 Esencia Verde - Jewelry Store. Todos los derechos reservados.</p>
+            </div>
+        </div>
+    </footer>
+
+    <!-- Botón WhatsApp flotante -->
+    <a href="https://wa.me/573001234567" class="whatsapp-float" target="_blank" rel="noopener" aria-label="Contactar por WhatsApp">
+        <i class="fab fa-whatsapp"></i>
+    </a>
+
+    <script>
+document.addEventListener('DOMContentLoaded', () => {
+    // Header scroll
+    const header = document.getElementById('header');
+    if (header) {
+        window.addEventListener('scroll', () => {
+            header.classList.toggle('scrolled', window.scrollY > 50);
+        });
+        const sections = document.querySelectorAll('section[id]');
+        const navLinks = document.querySelectorAll('.nav-link');
+        window.addEventListener('scroll', () => {
+            const scrollPos = window.scrollY + 120;
+            sections.forEach(section => {
+                const top = section.offsetTop;
+                const height = section.offsetHeight;
+                const id = section.getAttribute('id');
+                if (scrollPos >= top && scrollPos < top + height) {
+                    navLinks.forEach(link => {
+                        link.classList.remove('active');
+                        if (link.getAttribute('href') === '#' + id) link.classList.add('active');
+                    });
+                }
+            });
+        });
+    }
+
+    // Mobile menu
+    const toggle = document.getElementById('menuToggle');
+    const nav = document.getElementById('nav');
+    if (toggle && nav) {
+        toggle.addEventListener('click', () => {
+            nav.classList.toggle('open');
+            toggle.classList.toggle('active');
+        });
+        nav.querySelectorAll('a').forEach(link => {
+            link.addEventListener('click', () => { nav.classList.remove('open'); toggle.classList.remove('active'); });
+        });
+    }
+
+    // Smooth scroll
+    document.querySelectorAll('a[href^="#"]').forEach(link => {
+        link.addEventListener('click', (e) => {
+            const targetId = link.getAttribute('href');
+            if (targetId === '#') return;
+            const target = document.querySelector(targetId);
+            if (target) { e.preventDefault(); target.scrollIntoView({ behavior: 'smooth' }); }
+        });
+    });
+
+    // Contact form -> WhatsApp
+    const form = document.getElementById('contactForm');
+    if (form) {
+        form.addEventListener('submit', (e) => {
+            e.preventDefault();
+            const data = new FormData(form);
+            const text = '*Mensaje desde la web Esencia Verde*%0A%0A' +
+                '*Nombre:* ' + encodeURIComponent(data.get('nombre') || '') + '%0A' +
+                '*Email:* ' + encodeURIComponent(data.get('email') || '') + '%0A' +
+                '*Teléfono:* ' + encodeURIComponent(data.get('telefono') || '') + '%0A' +
+                '*Interés:* ' + encodeURIComponent(data.get('interes') || '') + '%0A' +
+                '*Mensaje:* ' + encodeURIComponent(data.get('mensaje') || '');
+            window.open('https://wa.me/573001234567?text=' + text, '_blank');
+        });
+    }
+
+    // Scroll animations
+    const elements = document.querySelectorAll('.category-card, .exclusive-card, .about-feature, .contact-item');
+    if ('IntersectionObserver' in window) {
+        const observer = new IntersectionObserver((entries) => {
+            entries.forEach(entry => {
+                if (entry.isIntersecting) { entry.target.style.opacity = '1'; entry.target.style.transform = 'translateY(0)'; observer.unobserve(entry.target); }
+            });
+        }, { threshold: 0.1 });
+        elements.forEach(el => { el.style.opacity = '0'; el.style.transform = 'translateY(20px)'; el.style.transition = 'opacity 0.6s ease, transform 0.6s ease'; observer.observe(el); });
+    }
+});
+    </script>
+</body>
+</html>

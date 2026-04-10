@@ -1,0 +1,452 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Joyería - Esencia Verde</title>
+    <meta name="description" content="Esencia Verde - Joyería exclusiva en oro, plata y esmeraldas colombianas.">
+    <link rel="icon" type="image/jpeg" href="assets/images/logo.jpeg">
+    <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;500;600;700&family=Lato:wght@300;400;500;600&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+    <style>
+:root {
+    --emerald: #0B6E4F;
+    --emerald-dark: #064E38;
+    --emerald-light: #0D8B63;
+    --gold: #C9A84C;
+    --gold-light: #D4B96A;
+    --ivory: #FFFFF0;
+    --cream: #FAF8F0;
+    --white: #FFFFFF;
+    --black: #1A1A1A;
+    --gray: #6B6B6B;
+    --gray-light: #E8E8E0;
+    --font-display: 'Playfair Display', Georgia, serif;
+    --font-body: 'Lato', 'Segoe UI', sans-serif;
+    --shadow: 0 4px 20px rgba(0,0,0,0.08);
+    --shadow-lg: 0 10px 40px rgba(0,0,0,0.12);
+    --radius: 8px;
+    --transition: all 0.3s ease;
+}
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+html { scroll-behavior: smooth; scroll-padding-top: 80px; }
+body { font-family: var(--font-body); color: var(--black); background: var(--cream); line-height: 1.7; overflow-x: hidden; }
+img { max-width: 100%; height: auto; display: block; }
+a { text-decoration: none; color: inherit; transition: var(--transition); }
+.container { max-width: 1200px; margin: 0 auto; padding: 0 24px; }
+
+/* HEADER */
+.header { position: fixed; top: 0; left: 0; right: 0; z-index: 1000; background: rgba(255,255,240,0.95); backdrop-filter: blur(12px); border-bottom: 1px solid rgba(11,110,79,0.1); transition: var(--transition); }
+.header.scrolled { box-shadow: 0 2px 20px rgba(0,0,0,0.08); }
+.header-inner { display: flex; align-items: center; justify-content: space-between; height: 80px; }
+.logo img { height: 60px; width: auto; border-radius: 4px; }
+.nav { display: flex; align-items: center; gap: 8px; }
+.nav-link { font-family: var(--font-body); font-size: 0.9rem; font-weight: 500; color: var(--emerald-dark); padding: 8px 16px; border-radius: var(--radius); letter-spacing: 0.3px; text-transform: uppercase; }
+.nav-link:hover, .nav-link.active { color: var(--emerald); background: rgba(11,110,79,0.06); }
+.nav-link i { font-size: 0.65rem; margin-left: 4px; }
+.nav-dropdown { position: relative; }
+.dropdown-menu { position: absolute; top: 100%; left: 0; background: var(--white); border-radius: var(--radius); box-shadow: var(--shadow-lg); min-width: 200px; padding: 8px 0; opacity: 0; visibility: hidden; transform: translateY(8px); transition: var(--transition); }
+.nav-dropdown:hover .dropdown-menu { opacity: 1; visibility: visible; transform: translateY(0); }
+.dropdown-menu a { display: block; padding: 10px 20px; font-size: 0.88rem; color: var(--black); font-weight: 400; }
+.dropdown-menu a:hover { background: rgba(11,110,79,0.06); color: var(--emerald); }
+.header-actions { display: flex; align-items: center; gap: 12px; }
+.btn-whatsapp { display: flex; align-items: center; gap: 6px; background: #25D366; color: var(--white); padding: 8px 18px; border-radius: 50px; font-size: 0.85rem; font-weight: 600; }
+.btn-whatsapp:hover { background: #1EBE5A; transform: translateY(-1px); }
+.menu-toggle { display: none; flex-direction: column; gap: 5px; background: none; border: none; cursor: pointer; padding: 8px; }
+.menu-toggle span { width: 24px; height: 2px; background: var(--emerald-dark); border-radius: 2px; transition: var(--transition); }
+
+/* BUTTONS */
+.btn { display: inline-flex; align-items: center; gap: 8px; padding: 14px 32px; border-radius: 4px; font-family: var(--font-body); font-size: 0.95rem; font-weight: 600; letter-spacing: 0.5px; text-transform: uppercase; cursor: pointer; border: 2px solid transparent; transition: var(--transition); }
+.btn-primary { background: var(--emerald); color: var(--white); border-color: var(--emerald); }
+.btn-primary:hover { background: var(--emerald-dark); border-color: var(--emerald-dark); transform: translateY(-2px); box-shadow: 0 6px 20px rgba(11,110,79,0.3); }
+
+/* PAGE HEADER */
+.page-header { padding: 120px 0 60px; background: linear-gradient(135deg, var(--emerald-dark) 0%, var(--emerald) 100%); text-align: center; color: var(--white); }
+.page-header h1 { font-family: var(--font-display); font-size: 2.5rem; margin-bottom: 8px; }
+.page-header p { font-size: 1rem; opacity: 0.85; font-weight: 300; }
+.breadcrumb { font-size: 0.85rem; margin-bottom: 16px; opacity: 0.7; }
+.breadcrumb a:hover { opacity: 1; }
+
+/* FILTERS */
+.filters { padding: 30px 0; background: var(--white); border-bottom: 1px solid var(--gray-light); position: sticky; top: 80px; z-index: 100; }
+.filters-inner { display: flex; gap: 10px; justify-content: center; flex-wrap: wrap; }
+.filter-btn { padding: 10px 24px; border: 1px solid var(--gray-light); border-radius: 50px; font-family: var(--font-body); font-size: 0.88rem; font-weight: 500; color: var(--gray); cursor: pointer; background: transparent; transition: var(--transition); }
+.filter-btn:hover, .filter-btn.active { background: var(--emerald); color: var(--white); border-color: var(--emerald); }
+
+/* PRODUCTS */
+.products-section { padding: 60px 0 100px; background: var(--cream); }
+.products-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 28px; }
+.product-card { background: var(--white); border-radius: 12px; overflow: hidden; box-shadow: var(--shadow); transition: var(--transition); }
+.product-card:hover { transform: translateY(-4px); box-shadow: var(--shadow-lg); }
+.product-img { aspect-ratio: 1; overflow: hidden; background: var(--ivory); position: relative; }
+.product-img img { width: 100%; height: 100%; object-fit: cover; transition: transform 0.5s ease; }
+.product-card:hover .product-img img { transform: scale(1.05); }
+.product-badge { position: absolute; top: 12px; left: 12px; background: var(--emerald); color: var(--white); font-size: 0.72rem; padding: 4px 10px; border-radius: 50px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px; }
+.product-info { padding: 18px; }
+.product-info h4 { font-family: var(--font-display); font-size: 1rem; color: var(--emerald-dark); margin-bottom: 4px; }
+.product-info .product-material { font-size: 0.8rem; color: var(--gold); font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 6px; }
+.product-info p { font-size: 0.85rem; color: var(--gray); font-weight: 300; }
+.product-actions { padding: 0 18px 18px; }
+.btn-consult { display: flex; align-items: center; justify-content: center; gap: 6px; width: 100%; padding: 10px; background: transparent; border: 1px solid var(--emerald); color: var(--emerald); border-radius: var(--radius); font-family: var(--font-body); font-size: 0.85rem; font-weight: 600; cursor: pointer; transition: var(--transition); }
+.btn-consult:hover { background: var(--emerald); color: var(--white); }
+.no-products { grid-column: 1 / -1; text-align: center; padding: 60px 20px; color: var(--gray); }
+.no-products i { font-size: 3rem; margin-bottom: 16px; opacity: 0.3; }
+.no-products h3 { font-family: var(--font-display); color: var(--emerald-dark); margin-bottom: 8px; }
+
+/* FOOTER */
+.footer { background: var(--emerald-dark); color: rgba(255,255,255,0.8); padding: 60px 0 0; }
+.footer-grid { display: grid; grid-template-columns: 1.5fr 1fr 1fr 1fr; gap: 40px; padding-bottom: 40px; border-bottom: 1px solid rgba(255,255,255,0.1); }
+.footer-logo { height: 50px; border-radius: 4px; margin-bottom: 16px; }
+.footer-brand p { font-size: 0.9rem; line-height: 1.7; opacity: 0.8; }
+.footer-links h4, .footer-contact h4 { color: var(--white); font-size: 0.95rem; text-transform: uppercase; letter-spacing: 1px; margin-bottom: 16px; }
+.footer-links a { display: block; font-size: 0.88rem; padding: 4px 0; opacity: 0.7; }
+.footer-links a:hover { opacity: 1; color: var(--gold-light); }
+.footer-contact p { font-size: 0.88rem; padding: 4px 0; opacity: 0.7; }
+.footer-contact i { margin-right: 8px; width: 16px; }
+.footer-social { display: flex; gap: 10px; margin-top: 16px; }
+.footer-social a { width: 36px; height: 36px; border: 1px solid rgba(255,255,255,0.3); border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 0.85rem; color: rgba(255,255,255,0.7); }
+.footer-social a:hover { background: var(--gold); border-color: var(--gold); color: var(--white); }
+.footer-bottom { text-align: center; padding: 20px 0; font-size: 0.82rem; opacity: 0.6; }
+
+/* ADMIN */
+.admin-fab { position: fixed; bottom: 100px; right: 28px; width: 50px; height: 50px; background: var(--emerald); color: var(--white); border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 1.2rem; box-shadow: var(--shadow-lg); cursor: pointer; border: none; z-index: 998; transition: var(--transition); }
+.admin-fab:hover { background: var(--emerald-dark); transform: scale(1.1); }
+.modal-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.5); z-index: 2000; display: none; align-items: center; justify-content: center; padding: 20px; }
+.modal-overlay.active { display: flex; }
+.modal { background: var(--white); border-radius: 12px; max-width: 500px; width: 100%; max-height: 90vh; overflow-y: auto; padding: 36px; }
+.modal h3 { font-family: var(--font-display); color: var(--emerald-dark); font-size: 1.3rem; margin-bottom: 24px; }
+.modal .form-group label { display: block; font-size: 0.85rem; font-weight: 600; color: var(--emerald-dark); margin-bottom: 6px; }
+.form-group { margin-bottom: 16px; }
+.form-group input, .form-group select, .form-group textarea { width: 100%; padding: 14px 18px; border: 1px solid var(--gray-light); border-radius: var(--radius); font-family: var(--font-body); font-size: 0.95rem; color: var(--black); background: var(--cream); transition: var(--transition); outline: none; }
+.form-group input:focus, .form-group select:focus, .form-group textarea:focus { border-color: var(--emerald); box-shadow: 0 0 0 3px rgba(11,110,79,0.1); }
+.form-group textarea { resize: vertical; }
+.file-upload { border: 2px dashed var(--gray-light); border-radius: var(--radius); padding: 30px; text-align: center; cursor: pointer; transition: var(--transition); position: relative; }
+.file-upload:hover { border-color: var(--emerald); background: rgba(11,110,79,0.02); }
+.file-upload i { font-size: 2rem; color: var(--gray-light); margin-bottom: 8px; }
+.file-upload p { font-size: 0.88rem; color: var(--gray); }
+.file-upload input { position: absolute; inset: 0; opacity: 0; cursor: pointer; }
+.file-preview { margin-top: 12px; display: flex; flex-wrap: wrap; gap: 8px; }
+.file-preview img { width: 60px; height: 60px; object-fit: cover; border-radius: 6px; border: 2px solid var(--gray-light); }
+
+/* WHATSAPP FLOAT */
+.whatsapp-float { position: fixed; bottom: 28px; right: 28px; width: 60px; height: 60px; background: #25D366; color: var(--white); border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 1.8rem; box-shadow: 0 4px 16px rgba(37,211,102,0.4); z-index: 999; transition: var(--transition); }
+.whatsapp-float:hover { transform: scale(1.1); box-shadow: 0 6px 24px rgba(37,211,102,0.5); }
+
+/* RESPONSIVE */
+@media (max-width: 1024px) { .footer-grid { grid-template-columns: 1fr 1fr; gap: 30px; } }
+@media (max-width: 768px) {
+    .nav, .header-actions { display: none; } .menu-toggle { display: flex; }
+    .nav.open { display: flex; flex-direction: column; position: absolute; top: 80px; left: 0; right: 0; background: var(--ivory); padding: 20px; box-shadow: var(--shadow); border-top: 1px solid var(--gray-light); }
+    .nav.open .nav-link { padding: 12px 16px; width: 100%; }
+    .nav.open .dropdown-menu { position: static; opacity: 1; visibility: visible; transform: none; box-shadow: none; padding-left: 20px; }
+    .products-grid { grid-template-columns: repeat(2, 1fr); gap: 16px; }
+    .page-header { padding: 100px 0 40px; } .page-header h1 { font-size: 1.8rem; }
+    .footer-grid { grid-template-columns: 1fr; text-align: center; } .footer-social { justify-content: center; }
+}
+@media (max-width: 480px) { .products-grid { grid-template-columns: 1fr; max-width: 360px; margin: 0 auto; } }
+    </style>
+</head>
+<body>
+
+    <!-- Header -->
+    <header class="header" id="header">
+        <div class="container header-inner">
+            <a href="index.html" class="logo">
+                <img src="assets/images/logo.jpeg" alt="Esencia Verde Logo">
+            </a>
+            <nav class="nav" id="nav">
+                <a href="index.html" class="nav-link">Inicio</a>
+                <div class="nav-dropdown">
+                    <a href="#" class="nav-link active">Joyería <i class="fas fa-chevron-down"></i></a>
+                    <div class="dropdown-menu">
+                        <a href="categoria.html?tipo=oro">Joyería en Oro</a>
+                        <a href="categoria.html?tipo=plata">Joyería en Plata</a>
+                    </div>
+                </div>
+                <a href="index.html#exclusivos" class="nav-link">Diseños Exclusivos</a>
+                <a href="index.html#nosotros" class="nav-link">Sobre Nosotros</a>
+                <a href="index.html#contacto" class="nav-link">Contacto</a>
+            </nav>
+            <div class="header-actions">
+                <a href="https://wa.me/573001234567" class="btn-whatsapp" target="_blank" rel="noopener">
+                    <i class="fab fa-whatsapp"></i> WhatsApp
+                </a>
+            </div>
+            <button class="menu-toggle" id="menuToggle" aria-label="Abrir menú">
+                <span></span><span></span><span></span>
+            </button>
+        </div>
+    </header>
+
+    <!-- Page Header -->
+    <div class="page-header">
+        <div class="container">
+            <p class="breadcrumb"><a href="index.html">Inicio</a> / <span id="breadcrumbCat">Joyería</span></p>
+            <h1 id="pageTitle">Joyería</h1>
+            <p id="pageSubtitle">Descubre nuestra colección exclusiva</p>
+        </div>
+    </div>
+
+    <!-- Filters -->
+    <div class="filters">
+        <div class="container">
+            <div class="filters-inner" id="filtersInner">
+                <button class="filter-btn active" data-filter="todos">Todos</button>
+                <button class="filter-btn" data-filter="anillos">Anillos</button>
+                <button class="filter-btn" data-filter="aretes">Aretes</button>
+                <button class="filter-btn" data-filter="dijes">Dijes</button>
+                <button class="filter-btn" data-filter="pulseras">Pulseras</button>
+                <button class="filter-btn" data-filter="cadenas">Cadenas</button>
+                <button class="filter-btn" data-filter="sets">Sets</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Products -->
+    <section class="products-section">
+        <div class="container">
+            <div class="products-grid" id="productsGrid"></div>
+        </div>
+    </section>
+
+    <!-- Footer -->
+    <footer class="footer">
+        <div class="container">
+            <div class="footer-grid">
+                <div class="footer-brand">
+                    <img src="assets/images/logo.jpeg" alt="Esencia Verde" class="footer-logo">
+                    <p>Joyería exclusiva en oro, plata y esmeraldas colombianas.</p>
+                </div>
+                <div class="footer-links">
+                    <h4>Navegación</h4>
+                    <a href="index.html">Inicio</a>
+                    <a href="categoria.html?tipo=oro">Joyería en Oro</a>
+                    <a href="categoria.html?tipo=plata">Joyería en Plata</a>
+                    <a href="index.html#exclusivos">Diseños Exclusivos</a>
+                    <a href="index.html#contacto">Contacto</a>
+                </div>
+                <div class="footer-links">
+                    <h4>Categorías</h4>
+                    <a href="categoria.html?tipo=oro&cat=anillos">Anillos</a>
+                    <a href="categoria.html?tipo=oro&cat=aretes">Aretes</a>
+                    <a href="categoria.html?tipo=oro&cat=dijes">Dijes</a>
+                    <a href="categoria.html?tipo=oro&cat=pulseras">Pulseras</a>
+                    <a href="categoria.html?tipo=oro&cat=cadenas">Cadenas</a>
+                    <a href="categoria.html?tipo=oro&cat=sets">Sets</a>
+                </div>
+                <div class="footer-contact">
+                    <h4>Contacto</h4>
+                    <p><i class="fab fa-whatsapp"></i> +57 300 123 4567</p>
+                    <p><i class="fas fa-envelope"></i> info@esenciaverde.com</p>
+                    <div class="footer-social">
+                        <a href="#" aria-label="Facebook"><i class="fab fa-facebook-f"></i></a>
+                        <a href="#" aria-label="Instagram"><i class="fab fa-instagram"></i></a>
+                        <a href="#" aria-label="TikTok"><i class="fab fa-tiktok"></i></a>
+                    </div>
+                </div>
+            </div>
+            <div class="footer-bottom">
+                <p>&copy; 2024 Esencia Verde - Jewelry Store. Todos los derechos reservados.</p>
+            </div>
+        </div>
+    </footer>
+
+    <!-- Admin Button -->
+    <button class="admin-fab" id="adminFab" title="Agregar producto"><i class="fas fa-plus"></i></button>
+
+    <!-- Add Product Modal -->
+    <div class="modal-overlay" id="addProductModal">
+        <div class="modal">
+            <h3><i class="fas fa-gem"></i> Agregar Nuevo Producto</h3>
+            <form id="addProductForm">
+                <div class="form-group">
+                    <label>Nombre del producto</label>
+                    <input type="text" id="prodName" placeholder="Ej: Anillo Esmeralda Solitario" required>
+                </div>
+                <div class="form-group">
+                    <label>Categoría</label>
+                    <select id="prodCategory" required>
+                        <option value="">Seleccionar...</option>
+                        <option value="anillos">Anillos</option>
+                        <option value="aretes">Aretes</option>
+                        <option value="dijes">Dijes</option>
+                        <option value="pulseras">Pulseras</option>
+                        <option value="cadenas">Cadenas</option>
+                        <option value="sets">Sets</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label>Material</label>
+                    <select id="prodMaterial" required>
+                        <option value="">Seleccionar...</option>
+                        <option value="oro">Oro 18k</option>
+                        <option value="plata">Plata 925</option>
+                        <option value="oro-esmeralda">Oro 18k + Esmeralda</option>
+                        <option value="plata-esmeralda">Plata 925 + Esmeralda</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label>Descripción</label>
+                    <textarea id="prodDesc" placeholder="Descripción breve del producto" rows="3"></textarea>
+                </div>
+                <div class="form-group">
+                    <label>Foto del producto</label>
+                    <div class="file-upload">
+                        <i class="fas fa-cloud-upload-alt"></i>
+                        <p>Haz clic o arrastra una imagen aquí</p>
+                        <input type="file" id="prodImage" accept="image/*">
+                    </div>
+                    <div class="file-preview" id="filePreview"></div>
+                </div>
+                <div style="display:flex;gap:12px;margin-top:8px;">
+                    <button type="submit" class="btn btn-primary" style="flex:1;">Agregar Producto</button>
+                    <button type="button" class="btn" style="flex:0.5;border:1px solid #ccc;" id="closeModal">Cancelar</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- WhatsApp Float -->
+    <a href="https://wa.me/573001234567" class="whatsapp-float" target="_blank" rel="noopener" aria-label="WhatsApp">
+        <i class="fab fa-whatsapp"></i>
+    </a>
+
+    <script>
+/* ========== PRODUCTS DATA ========== */
+const DEFAULT_PRODUCTS = {
+    oro: [
+        { id:'oro-1', name:'Collar Esmeralda Corazón', category:'dijes', material:'oro-esmeralda', description:'Oro 18k con esmeralda colombiana en talla corazón rodeada de diamantes naturales', image:'assets/images/collar-esmeralda.png' },
+        { id:'oro-2', name:'Aretes Esmeralda y Diamantes', category:'aretes', material:'oro-esmeralda', description:'Oro 18k, esmeraldas naturales certificadas con 26 diamantes naturales', image:'assets/images/aretes-certificado.jpeg' },
+        { id:'oro-3', name:'Aretes Colgantes Halo', category:'aretes', material:'oro-esmeralda', description:'Oro 18k con esmeraldas colombianas y halo de diamantes', image:'assets/images/aretes-oro.jpeg' },
+        { id:'oro-4', name:'Anillo Solitario Esmeralda', category:'anillos', material:'oro-esmeralda', description:'Oro 18k con esmeralda natural y diamantes laterales', image:'assets/images/anillo-esmeralda.png' },
+        { id:'oro-5', name:'Collares Layering Esmeralda', category:'cadenas', material:'oro-esmeralda', description:'Oro 18k, set de collares con esmeraldas en cortes rectangulares', image:'assets/images/collar-modelo.png' },
+        { id:'oro-6', name:'Collar Delicado Esmeralda', category:'cadenas', material:'oro-esmeralda', description:'Oro 18k, esmeralda natural talla esmeralda en cadena delicada', image:'assets/images/collar-modelo2.png' }
+    ],
+    plata: [
+        { id:'plata-1', name:'Anillo Esmeralda Plata', category:'anillos', material:'plata-esmeralda', description:'Plata 925 con esmeralda colombiana natural, diseño clásico', image:'' },
+        { id:'plata-2', name:'Aretes Esmeralda Plata', category:'aretes', material:'plata-esmeralda', description:'Plata 925, esmeraldas naturales con acabado rodio', image:'' },
+        { id:'plata-3', name:'Dije Gota Esmeralda', category:'dijes', material:'plata-esmeralda', description:'Plata 925, esmeralda natural en talla gota', image:'' },
+        { id:'plata-4', name:'Pulsera Tennis Esmeralda', category:'pulseras', material:'plata-esmeralda', description:'Plata 925, pulsera tennis con esmeraldas naturales', image:'' },
+        { id:'plata-5', name:'Cadena Plata 925', category:'cadenas', material:'plata', description:'Cadena en plata 925 con acabado brillante, varios largos disponibles', image:'' },
+        { id:'plata-6', name:'Set Esmeralda Plata', category:'sets', material:'plata-esmeralda', description:'Set completo en plata 925: aretes, dije y anillo con esmeraldas', image:'' }
+    ]
+};
+
+let currentType = 'oro';
+let currentFilter = 'todos';
+
+function getProducts(type) {
+    const stored = localStorage.getItem('ev_products_' + type);
+    if (stored) return JSON.parse(stored);
+    return DEFAULT_PRODUCTS[type] || [];
+}
+function saveProducts(type, products) { localStorage.setItem('ev_products_' + type, JSON.stringify(products)); }
+
+function escapeHtml(str) {
+    if (!str) return '';
+    const div = document.createElement('div');
+    div.textContent = str;
+    return div.innerHTML;
+}
+
+function renderProducts() {
+    const grid = document.getElementById('productsGrid');
+    if (!grid) return;
+    const products = getProducts(currentType);
+    const filtered = currentFilter === 'todos' ? products : products.filter(p => p.category === currentFilter);
+    if (filtered.length === 0) {
+        grid.innerHTML = '<div class="no-products"><i class="fas fa-gem"></i><h3>Próximamente</h3><p>Estamos preparando nuevos productos para esta categoría.</p></div>';
+        return;
+    }
+    const matLabels = { 'oro':'Oro 18k', 'plata':'Plata 925', 'oro-esmeralda':'Oro 18k + Esmeralda', 'plata-esmeralda':'Plata 925 + Esmeralda' };
+    const catLabels = { 'anillos':'Anillo', 'aretes':'Aretes', 'dijes':'Dije', 'pulseras':'Pulsera', 'cadenas':'Cadena', 'sets':'Set' };
+    grid.innerHTML = filtered.map(p => {
+        const img = p.image ? '<img src="'+escapeHtml(p.image)+'" alt="'+escapeHtml(p.name)+'" loading="lazy">' : '<div style="width:100%;height:100%;display:flex;align-items:center;justify-content:center;background:linear-gradient(135deg,#f5f5e8,#e8e8e0);"><i class="fas fa-gem" style="font-size:3rem;color:#ccc;"></i></div>';
+        return '<div class="product-card" data-category="'+p.category+'"><div class="product-img">'+img+'<span class="product-badge">'+escapeHtml(catLabels[p.category]||p.category)+'</span></div><div class="product-info"><div class="product-material">'+escapeHtml(matLabels[p.material]||p.material)+'</div><h4>'+escapeHtml(p.name)+'</h4><p>'+escapeHtml(p.description)+'</p></div><div class="product-actions"><button class="btn-consult" onclick="consultProduct(\''+escapeHtml(p.name).replace(/'/g,"\\'")+'\')"><i class="fab fa-whatsapp"></i> Consultar</button></div></div>';
+    }).join('');
+}
+
+function consultProduct(name) {
+    window.open('https://wa.me/573001234567?text='+encodeURIComponent('Hola, estoy interesado/a en el producto "'+name+'" que vi en su página web. ¿Me pueden dar más información?'), '_blank');
+}
+
+document.addEventListener('DOMContentLoaded', () => {
+    // Init page
+    const params = new URLSearchParams(window.location.search);
+    currentType = params.get('tipo') || 'oro';
+    const cat = params.get('cat');
+    const isGold = currentType === 'oro';
+    document.getElementById('pageTitle').textContent = isGold ? 'Joyería en Oro' : 'Joyería en Plata';
+    document.getElementById('pageSubtitle').textContent = isGold ? 'Piezas exclusivas en oro 18k con esmeraldas colombianas' : 'Elegancia y sofisticación en plata 925 de la más alta calidad';
+    document.getElementById('breadcrumbCat').textContent = isGold ? 'Joyería en Oro' : 'Joyería en Plata';
+    document.title = (isGold ? 'Joyería en Oro' : 'Joyería en Plata') + ' - Esencia Verde';
+    if (cat) { currentFilter = cat; document.querySelectorAll('.filter-btn').forEach(b => b.classList.toggle('active', b.dataset.filter === cat)); }
+    renderProducts();
+
+    // Filters
+    document.querySelectorAll('.filter-btn').forEach(btn => {
+        btn.addEventListener('click', () => {
+            document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
+            btn.classList.add('active');
+            currentFilter = btn.dataset.filter;
+            renderProducts();
+        });
+    });
+
+    // Header scroll
+    const header = document.getElementById('header');
+    if (header) window.addEventListener('scroll', () => { header.classList.toggle('scrolled', window.scrollY > 50); });
+
+    // Mobile menu
+    const toggle = document.getElementById('menuToggle');
+    const nav = document.getElementById('nav');
+    if (toggle && nav) {
+        toggle.addEventListener('click', () => { nav.classList.toggle('open'); });
+        nav.querySelectorAll('a').forEach(link => { link.addEventListener('click', () => { nav.classList.remove('open'); }); });
+    }
+
+    // Admin panel
+    const fab = document.getElementById('adminFab');
+    const modal = document.getElementById('addProductModal');
+    const closeBtn = document.getElementById('closeModal');
+    const form = document.getElementById('addProductForm');
+    const imageInput = document.getElementById('prodImage');
+    const preview = document.getElementById('filePreview');
+    let imageData = '';
+
+    fab.addEventListener('click', () => { modal.classList.add('active'); });
+    closeBtn.addEventListener('click', () => { modal.classList.remove('active'); form.reset(); preview.innerHTML = ''; imageData = ''; });
+    modal.addEventListener('click', (e) => { if (e.target === modal) { modal.classList.remove('active'); form.reset(); preview.innerHTML = ''; imageData = ''; } });
+
+    imageInput.addEventListener('change', (e) => {
+        const file = e.target.files[0];
+        if (!file) return;
+        const reader = new FileReader();
+        reader.onload = (ev) => { imageData = ev.target.result; preview.innerHTML = '<img src="'+imageData+'" alt="Preview">'; };
+        reader.readAsDataURL(file);
+    });
+
+    form.addEventListener('submit', (e) => {
+        e.preventDefault();
+        const name = document.getElementById('prodName').value.trim();
+        const category = document.getElementById('prodCategory').value;
+        const material = document.getElementById('prodMaterial').value;
+        const description = document.getElementById('prodDesc').value.trim();
+        if (!name || !category || !material) return;
+        const product = { id: currentType+'-'+Date.now(), name, category, material, description, image: imageData || '' };
+        const products = getProducts(currentType);
+        products.push(product);
+        saveProducts(currentType, products);
+        form.reset(); preview.innerHTML = ''; imageData = ''; modal.classList.remove('active');
+        renderProducts();
+        // Notification
+        const notif = document.createElement('div');
+        notif.textContent = 'Producto agregado exitosamente';
+        Object.assign(notif.style, { position:'fixed', bottom:'100px', left:'50%', transform:'translateX(-50%)', background:'#0B6E4F', color:'#fff', padding:'14px 28px', borderRadius:'8px', fontSize:'0.92rem', fontFamily:"'Lato',sans-serif", boxShadow:'0 4px 20px rgba(0,0,0,0.2)', zIndex:'9999' });
+        document.body.appendChild(notif);
+        setTimeout(() => { notif.style.opacity = '0'; notif.style.transition = 'opacity 0.3s'; setTimeout(() => notif.remove(), 300); }, 2500);
+    });
+});
+    </script>
+</body>
+</html>
