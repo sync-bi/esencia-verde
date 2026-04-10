@@ -55,9 +55,9 @@ a { text-decoration: none; color: inherit; transition: var(--transition); }
     border-bottom: 1px solid rgba(11,110,79,0.1); transition: var(--transition);
 }
 .header.scrolled { box-shadow: 0 2px 20px rgba(0,0,0,0.08); }
-.header-inner { display: flex; align-items: center; justify-content: space-between; height: 95px; }
+.header-inner { display: flex; align-items: center; justify-content: space-between; height: 110px; }
 .logo { display: flex; align-items: center; }
-.logo img { height: 85px; width: auto; }
+.logo img { height: 100px; width: auto; padding: 4px; border-radius: 8px; }
 .nav { display: flex; align-items: center; gap: 6px; }
 .nav-link { font-family: var(--font-body); font-size: 0.85rem; font-weight: 500; color: var(--emerald-dark); padding: 8px 14px; border-radius: var(--radius); letter-spacing: 0.3px; text-transform: uppercase; }
 .nav-link:hover, .nav-link.active { color: var(--emerald); background: rgba(11,110,79,0.06); }
@@ -90,7 +90,7 @@ a { text-decoration: none; color: inherit; transition: var(--transition); }
 .hero {
     position: relative; min-height: 100vh; display: flex; align-items: center;
     background: linear-gradient(135deg, var(--emerald-dark) 0%, var(--emerald) 40%, var(--emerald-light) 100%);
-    overflow: hidden; padding-top: 95px;
+    overflow: hidden; padding-top: 110px;
 }
 .hero-overlay { position: absolute; inset: 0; background: radial-gradient(ellipse at 70% 50%, rgba(201,168,76,0.1) 0%, transparent 60%), radial-gradient(ellipse at 30% 80%, rgba(0,0,0,0.15) 0%, transparent 50%); }
 .hero-inner { position: relative; display: flex; align-items: center; justify-content: space-between; width: 100%; max-width: 1200px; margin: 0 auto; padding: 0 24px; gap: 40px; }
@@ -208,7 +208,7 @@ a { text-decoration: none; color: inherit; transition: var(--transition); }
     .top-bar { display: none; }
     .nav, .header-actions .header-social { display: none; }
     .menu-toggle { display: flex; }
-    .nav.open { display: flex; flex-direction: column; position: absolute; top: 95px; left: 0; right: 0; background: var(--ivory); padding: 20px; box-shadow: var(--shadow); border-top: 1px solid var(--gray-light); }
+    .nav.open { display: flex; flex-direction: column; position: absolute; top: 110px; left: 0; right: 0; background: var(--ivory); padding: 20px; box-shadow: var(--shadow); border-top: 1px solid var(--gray-light); }
     .nav.open .nav-link { padding: 12px 16px; width: 100%; }
     .nav.open .dropdown-menu { position: static; opacity: 1; visibility: visible; transform: none; box-shadow: none; padding-left: 20px; }
     .hero-inner { flex-direction: column; text-align: center; padding-top: 40px; }
@@ -248,7 +248,7 @@ a { text-decoration: none; color: inherit; transition: var(--transition); }
     <header class="header" id="header">
         <div class="container header-inner">
             <a href="#inicio" class="logo">
-                <img src="assets/images/logo.jpeg" alt="Esencia Verde">
+                <img src="assets/images/logo-claro.png" alt="Esencia Verde">
             </a>
             <nav class="nav" id="nav">
                 <a href="#inicio" class="nav-link active">Inicio</a>
