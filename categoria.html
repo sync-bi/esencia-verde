@@ -28,10 +28,9 @@ a { text-decoration: none; color: inherit; transition: var(--transition); }
 .header { position: fixed; top: 0; left: 0; right: 0; z-index: 1000; background: rgba(255,255,240,0.97); backdrop-filter: blur(12px); border-bottom: 1px solid rgba(11,110,79,0.1); transition: var(--transition); }
 .header.scrolled { box-shadow: 0 2px 20px rgba(0,0,0,0.08); }
 .header-inner { display: flex; align-items: center; justify-content: space-between; height: 95px; }
-.logo { display: flex; align-items: center; gap: 14px; }
-.logo img { height: 80px; width: auto; border-radius: 4px; }
-.logo-text { font-family: var(--font-display); font-size: 1.4rem; font-weight: 700; color: var(--emerald-dark); line-height: 1.2; text-transform: uppercase; letter-spacing: 1px; }
-.logo-text span { display: block; font-size: 0.65rem; font-weight: 400; letter-spacing: 3px; color: var(--gray); text-transform: uppercase; }
+.logo { display: flex; align-items: center; }
+.logo-text { font-family: var(--font-display); font-size: 1.6rem; font-weight: 700; color: var(--emerald-dark); line-height: 1.2; text-transform: uppercase; letter-spacing: 2px; }
+.logo-text span { display: block; font-size: 0.7rem; font-weight: 400; letter-spacing: 4px; color: var(--gold); text-transform: uppercase; margin-top: 2px; }
 .nav { display: flex; align-items: center; gap: 6px; }
 .nav-link { font-family: var(--font-body); font-size: 0.85rem; font-weight: 500; color: var(--emerald-dark); padding: 8px 14px; border-radius: var(--radius); letter-spacing: 0.3px; text-transform: uppercase; }
 .nav-link:hover, .nav-link.active { color: var(--emerald); background: rgba(11,110,79,0.06); }
@@ -148,7 +147,6 @@ a { text-decoration: none; color: inherit; transition: var(--transition); }
     <header class="header" id="header">
         <div class="container header-inner">
             <a href="index.html" class="logo">
-                <img src="assets/images/logo.jpeg" alt="Esencia Verde Logo">
                 <div class="logo-text">ESENCIA VERDE<span>Jewelry Store</span></div>
             </a>
             <nav class="nav" id="nav">
