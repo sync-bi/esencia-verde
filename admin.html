@@ -127,29 +127,15 @@ tr.hidden-row td { opacity: 0.5; background: #faf8f0; }
 </head>
 <body>
 
-<!-- LOGIN GATE -->
-<div id="loginGate">
-    <div class="login-wrap">
-        <i class="fas fa-lock lock"></i>
-        <h2>Panel de Inventario</h2>
-        <p>Ingresa la clave para administrar los productos</p>
-        <form id="loginForm">
-            <input type="password" id="loginPass" placeholder="Clave de acceso" autocomplete="current-password" required>
-            <button type="submit">Entrar</button>
-            <div class="err" id="loginErr"></div>
-        </form>
-    </div>
-</div>
-
 <!-- ADMIN APP -->
-<div id="adminApp" style="display:none;">
+<div id="adminApp">
 
 <header class="admin-header">
     <div class="admin-header-inner">
         <h1><i class="fas fa-gem"></i> Inventario · Esencia Verde</h1>
         <div style="display:flex;gap:16px;align-items:center;">
             <a href="index.html" class="back"><i class="fas fa-arrow-left"></i> Ver sitio</a>
-            <button class="btn btn-ghost btn-sm" id="logoutBtn"><i class="fas fa-sign-out-alt"></i> Salir</button>
+            <button class="btn btn-ghost btn-sm" id="logoutBtn"><i class="fas fa-home"></i> Inicio</button>
         </div>
     </div>
 </header>
@@ -246,38 +232,11 @@ tr.hidden-row td { opacity: 0.5; background: #faf8f0; }
 
 <script src="assets/js/products.js"></script>
 <script>
-/* ========== LOGIN GATE ========== */
-const ADMIN_PASS = 'esencia2026';
-const LS_AUTH = 'ev_admin_auth';
-
-const loginGate = document.getElementById('loginGate');
-const adminApp = document.getElementById('adminApp');
-
-function isAuthed() {
-    return sessionStorage.getItem(LS_AUTH) === '1';
-}
-function showApp() {
-    loginGate.style.display = 'none';
-    adminApp.style.display = 'block';
-    render();
-}
-
-if (isAuthed()) showApp();
-
-document.getElementById('loginForm').addEventListener('submit', (e) => {
-    e.preventDefault();
-    const val = document.getElementById('loginPass').value;
-    if (val === ADMIN_PASS) {
-        sessionStorage.setItem(LS_AUTH, '1');
-        showApp();
-    } else {
-        document.getElementById('loginErr').textContent = 'Clave incorrecta';
-    }
-});
+/* ========== INIT ========== */
+document.addEventListener('DOMContentLoaded', () => render());
 
 document.getElementById('logoutBtn').addEventListener('click', () => {
-    sessionStorage.removeItem(LS_AUTH);
-    location.reload();
+    location.href = 'index.html';
 });
 
 /* ========== ADMIN STATE ========== */
