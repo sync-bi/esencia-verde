@@ -137,6 +137,8 @@ a { text-decoration: none; color: inherit; transition: var(--transition); }
 .exclusive-img { position: relative; overflow: hidden; aspect-ratio: 1; }
 .exclusive-img img { width: 100%; height: 100%; object-fit: cover; transition: transform 0.5s ease; }
 .exclusive-card:hover .exclusive-img img { transform: scale(1.05); }
+.exclusive-img .sold-out-overlay { position: absolute; top: 12px; right: 12px; background: rgba(26,26,26,0.85); color: #fff; font-size: 0.75rem; padding: 6px 14px; border-radius: 50px; font-weight: 700; text-transform: uppercase; letter-spacing: 1px; z-index: 2; }
+.exclusive-card.sold-out .exclusive-img img { filter: grayscale(0.7) brightness(0.85); }
 .exclusive-info { padding: 20px; }
 .exclusive-info h4 { font-family: var(--font-display); font-size: 1.05rem; color: var(--emerald-dark); margin-bottom: 6px; }
 .exclusive-info p { font-size: 0.85rem; color: var(--gray); font-weight: 300; }
@@ -334,32 +336,7 @@ a { text-decoration: none; color: inherit; transition: var(--transition); }
         <div class="container">
             <h2 class="section-title">Diseños Exclusivos</h2>
             <p class="section-subtitle">Creamos piezas únicas, diseñadas especialmente para nuestros clientes</p>
-            <div class="exclusive-grid">
-                <div class="exclusive-card">
-                    <div class="exclusive-img"><img src="assets/images/collar-oro-esmeralda.jpeg" alt="Collar Esmeralda Talla Rectangular" loading="lazy"></div>
-                    <div class="exclusive-info"><h4>Collar Esmeralda Talla Rectangular</h4><p>Oro 18k, Esmeralda Colombiana talla esmeralda en cadena de oro</p></div>
-                </div>
-                <div class="exclusive-card">
-                    <div class="exclusive-img"><img src="assets/images/dije-gota-oro.jpeg" alt="Dije Gota Esmeralda" loading="lazy"></div>
-                    <div class="exclusive-info"><h4>Dije Gota Esmeralda</h4><p>Oro 18k, Esmeralda Natural en talla gota con cadena delicada</p></div>
-                </div>
-                <div class="exclusive-card">
-                    <div class="exclusive-img"><img src="assets/images/set-oro-gota.jpeg" alt="Set Gota Oro y Esmeralda" loading="lazy"></div>
-                    <div class="exclusive-info"><h4>Set Gota Oro y Esmeralda</h4><p>Oro 18k, Set de collar y aretes con esmeraldas en talla gota</p></div>
-                </div>
-                <div class="exclusive-card">
-                    <div class="exclusive-img"><img src="assets/images/aretes-oro-cuadrados.jpeg" alt="Aretes Esmeralda Cuadrados" loading="lazy"></div>
-                    <div class="exclusive-info"><h4>Aretes Esmeralda Cuadrados</h4><p>Oro 18k, Esmeraldas Colombianas talla cuadrada con diamantes</p></div>
-                </div>
-                <div class="exclusive-card">
-                    <div class="exclusive-img"><img src="assets/images/set-plata-cuadrado.jpeg" alt="Set Plata y Esmeralda" loading="lazy"></div>
-                    <div class="exclusive-info"><h4>Set Plata y Esmeralda</h4><p>Plata 925, Set de collar y aretes con esmeraldas en talla cuadrada</p></div>
-                </div>
-                <div class="exclusive-card">
-                    <div class="exclusive-img"><img src="assets/images/dije-oro-redondo.jpeg" alt="Dije Redondo Esmeralda" loading="lazy"></div>
-                    <div class="exclusive-info"><h4>Dije Redondo Esmeralda</h4><p>Oro 18k, Esmeralda Natural talla redonda en cadena box</p></div>
-                </div>
-            </div>
+            <div class="exclusive-grid" id="featuredGrid"></div>
         </div>
     </section>
 
@@ -506,5 +483,6 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 });
     </script>
+    <script type="module" src="assets/js/products.js"></script>
 </body>
 </html>

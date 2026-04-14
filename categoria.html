@@ -215,106 +215,20 @@ a { text-decoration: none; color: inherit; transition: var(--transition); }
         </div>
     </footer>
 
-    <button class="admin-fab" id="adminFab" title="Agregar producto"><i class="fas fa-plus"></i></button>
-
-    <div class="modal-overlay" id="addProductModal">
-        <div class="modal">
-            <h3><i class="fas fa-gem"></i> Agregar Nuevo Producto</h3>
-            <form id="addProductForm">
-                <div class="form-group"><label>Nombre del producto</label><input type="text" id="prodName" placeholder="Ej: Anillo Esmeralda Solitario" required></div>
-                <div class="form-group"><label>Categoría</label><select id="prodCategory" required><option value="">Seleccionar...</option><option value="anillos">Anillos</option><option value="aretes">Aretes</option><option value="dijes">Dijes</option><option value="pulseras">Pulseras</option><option value="cadenas">Cadenas</option><option value="sets">Sets</option></select></div>
-                <div class="form-group"><label>Material</label><select id="prodMaterial" required><option value="">Seleccionar...</option><option value="oro">Oro 18k</option><option value="plata">Plata 925</option><option value="oro-esmeralda">Oro 18k + Esmeralda</option><option value="plata-esmeralda">Plata 925 + Esmeralda</option></select></div>
-                <div class="form-group"><label>Descripción</label><textarea id="prodDesc" placeholder="Descripción breve del producto" rows="3"></textarea></div>
-                <div class="form-group"><label>Foto del producto</label><div class="file-upload"><i class="fas fa-cloud-upload-alt"></i><p>Haz clic o arrastra una imagen aquí</p><input type="file" id="prodImage" accept="image/*"></div><div class="file-preview" id="filePreview"></div></div>
-                <div style="display:flex;gap:12px;margin-top:8px;"><button type="submit" class="btn btn-primary" style="flex:1;">Agregar Producto</button><button type="button" class="btn" style="flex:0.5;border:1px solid #ccc;" id="closeModal">Cancelar</button></div>
-            </form>
-        </div>
-    </div>
-
     <a href="https://wa.me/573152435998" class="whatsapp-float" target="_blank" rel="noopener" aria-label="WhatsApp"><i class="fab fa-whatsapp"></i></a>
 
     <script>
-const DEFAULT_PRODUCTS = {
-    oro: [
-        { id:'oro-1', name:'Collar Esmeralda Rectangular', category:'dijes', material:'oro-esmeralda', description:'Oro 18k con esmeralda colombiana talla rectangular en cadena de oro', image:'assets/images/collar-oro-esmeralda.jpeg' },
-        { id:'oro-2', name:'Dije Gota Esmeralda', category:'dijes', material:'oro-esmeralda', description:'Oro 18k, esmeralda natural en talla gota con cadena delicada', image:'assets/images/dije-gota-oro.jpeg' },
-        { id:'oro-3', name:'Aretes Esmeralda Cuadrados', category:'aretes', material:'oro-esmeralda', description:'Oro 18k, esmeraldas colombianas talla cuadrada con diamantes', image:'assets/images/aretes-oro-cuadrados.jpeg' },
-        { id:'oro-4', name:'Anillo Solitario Esmeralda', category:'anillos', material:'oro-esmeralda', description:'Oro 18k con esmeralda natural redonda, diseño delicado', image:'assets/images/anillo-oro-esmeralda.jpeg' },
-        { id:'oro-5', name:'Set Gota Esmeralda', category:'sets', material:'oro-esmeralda', description:'Oro 18k, set de collar y aretes con esmeraldas en talla gota', image:'assets/images/set-oro-gota.jpeg' },
-        { id:'oro-6', name:'Set Gota Esmeralda Delicado', category:'sets', material:'oro-esmeralda', description:'Oro 18k, set collar y aretes con esmeraldas naturales talla gota', image:'assets/images/set-oro-gota2.jpeg' },
-        { id:'oro-7', name:'Dije Redondo Esmeralda', category:'dijes', material:'oro-esmeralda', description:'Oro 18k, esmeralda natural talla redonda en cadena box', image:'assets/images/dije-oro-redondo.jpeg' },
-        { id:'oro-8', name:'Modelo con Esmeraldas', category:'sets', material:'oro-esmeralda', description:'Oro 18k, set de aretes y collar con esmeraldas colombianas lucido por modelo', image:'assets/images/modelo-esmeraldas.jpeg' }
-    ],
-    plata: [
-        { id:'plata-1', name:'Anillo Esmeralda Hojas', category:'anillos', material:'plata-esmeralda', description:'Plata 925 con esmeralda colombiana natural, diseño de hojas con diamantes', image:'assets/images/anillo-plata-esmeralda.jpeg' },
-        { id:'plata-2', name:'Anillo Esmeralda Entrelazado', category:'anillos', material:'plata-esmeralda', description:'Plata 925, esmeralda natural talla cuadrada con diseño entrelazado', image:'assets/images/anillo-plata-esmeralda2.jpeg' },
-        { id:'plata-3', name:'Aretes Halo Esmeralda', category:'aretes', material:'plata-esmeralda', description:'Plata 925, esmeraldas naturales redondas con halo de circones', image:'assets/images/aretes-plata-halo.jpeg' },
-        { id:'plata-4', name:'Set Cuadrado Esmeralda', category:'sets', material:'plata-esmeralda', description:'Plata 925, set de collar y aretes con esmeraldas talla cuadrada y halo', image:'assets/images/set-plata-cuadrado.jpeg' },
-        { id:'plata-5', name:'Pulsera Tennis Esmeralda', category:'pulseras', material:'plata-esmeralda', description:'Plata 925, pulsera tennis con esmeraldas naturales', image:'' },
-        { id:'plata-6', name:'Cadena Plata 925', category:'cadenas', material:'plata', description:'Cadena en plata 925 con acabado brillante, varios largos disponibles', image:'' }
-    ]
-};
-
-let currentType = 'oro', currentFilter = 'todos';
-function getProducts(type) { const s = localStorage.getItem('ev_products_'+type); return s ? JSON.parse(s) : DEFAULT_PRODUCTS[type] || []; }
-function saveProducts(type, products) { localStorage.setItem('ev_products_'+type, JSON.stringify(products)); }
-function escapeHtml(str) { if (!str) return ''; const d = document.createElement('div'); d.textContent = str; return d.innerHTML; }
-
-function renderProducts() {
-    const grid = document.getElementById('productsGrid'); if (!grid) return;
-    const products = getProducts(currentType);
-    const filtered = currentFilter === 'todos' ? products : products.filter(p => p.category === currentFilter);
-    if (filtered.length === 0) { grid.innerHTML = '<div class="no-products"><i class="fas fa-gem"></i><h3>Próximamente</h3><p>Estamos preparando nuevos productos para esta categoría.</p></div>'; return; }
-    const matLabels = { 'oro':'Oro 18k', 'plata':'Plata 925', 'oro-esmeralda':'Oro 18k + Esmeralda', 'plata-esmeralda':'Plata 925 + Esmeralda' };
-    const catLabels = { 'anillos':'Anillo', 'aretes':'Aretes', 'dijes':'Dije', 'pulseras':'Pulsera', 'cadenas':'Cadena', 'sets':'Set' };
-    grid.innerHTML = filtered.map(p => {
-        var imgUrl = p.image && !p.image.startsWith('data:') ? 'https://sync-bi.github.io/esencia-verde/'+p.image : '';
-        const img = p.image ? '<img src="'+escapeHtml(p.image)+'" alt="'+escapeHtml(p.name)+'" loading="lazy">' : '<div style="width:100%;height:100%;display:flex;align-items:center;justify-content:center;background:linear-gradient(135deg,#f5f5e8,#e8e8e0);"><i class="fas fa-gem" style="font-size:3rem;color:#ccc;"></i></div>';
-        return '<div class="product-card" data-category="'+p.category+'"><div class="product-img">'+img+'<span class="product-badge">'+escapeHtml(catLabels[p.category]||p.category)+'</span></div><div class="product-info"><div class="product-material">'+escapeHtml(matLabels[p.material]||p.material)+'</div><h4>'+escapeHtml(p.name)+'</h4><p>'+escapeHtml(p.description)+'</p></div><div class="product-actions"><button class="btn-consult" onclick="consultProduct(\''+escapeHtml(p.name).replace(/'/g,"\\'")+'\',\''+escapeHtml(imgUrl).replace(/'/g,"\\'")+'\')"><i class="fab fa-whatsapp"></i> Consultar</button></div></div>';
-    }).join('');
-}
-
-function consultProduct(name, imageUrl) {
-    var msg = 'Hola, estoy interesado/a en el producto "'+name+'" que vi en su página web. ¿Me pueden dar más información?';
-    if (imageUrl) msg += '\n\nFoto del producto: ' + imageUrl;
-    window.open('https://wa.me/573152435998?text='+encodeURIComponent(msg), '_blank');
-}
-
+// Header scroll + mobile menu
 document.addEventListener('DOMContentLoaded', () => {
-    const params = new URLSearchParams(window.location.search);
-    currentType = params.get('tipo') || 'oro'; const cat = params.get('cat');
-    const isGold = currentType === 'oro';
-    document.getElementById('pageTitle').textContent = isGold ? 'Joyería en Oro' : 'Joyería en Plata';
-    document.getElementById('pageSubtitle').textContent = isGold ? 'Piezas exclusivas en oro 18k con esmeraldas colombianas' : 'Elegancia y sofisticación en plata 925 de la más alta calidad';
-    document.getElementById('breadcrumbCat').textContent = isGold ? 'Joyería en Oro' : 'Joyería en Plata';
-    document.title = (isGold ? 'Joyería en Oro' : 'Joyería en Plata') + ' - Esencia Verde';
-    if (cat) { currentFilter = cat; document.querySelectorAll('.filter-btn').forEach(b => b.classList.toggle('active', b.dataset.filter === cat)); }
-    renderProducts();
-
-    document.querySelectorAll('.filter-btn').forEach(btn => { btn.addEventListener('click', () => { document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active')); btn.classList.add('active'); currentFilter = btn.dataset.filter; renderProducts(); }); });
-
     const header = document.getElementById('header');
     if (header) window.addEventListener('scroll', () => { header.classList.toggle('scrolled', window.scrollY > 50); });
     const toggle = document.getElementById('menuToggle'), nav = document.getElementById('nav');
-    if (toggle && nav) { toggle.addEventListener('click', () => { nav.classList.toggle('open'); }); nav.querySelectorAll('a').forEach(link => { link.addEventListener('click', () => { nav.classList.remove('open'); }); }); }
-
-    const fab = document.getElementById('adminFab'), modal = document.getElementById('addProductModal'), closeBtn = document.getElementById('closeModal'), form = document.getElementById('addProductForm'), imageInput = document.getElementById('prodImage'), preview = document.getElementById('filePreview');
-    let imageData = '';
-    fab.addEventListener('click', () => { modal.classList.add('active'); });
-    closeBtn.addEventListener('click', () => { modal.classList.remove('active'); form.reset(); preview.innerHTML = ''; imageData = ''; });
-    modal.addEventListener('click', (e) => { if (e.target === modal) { modal.classList.remove('active'); form.reset(); preview.innerHTML = ''; imageData = ''; } });
-    imageInput.addEventListener('change', (e) => { const file = e.target.files[0]; if (!file) return; const reader = new FileReader(); reader.onload = (ev) => { imageData = ev.target.result; preview.innerHTML = '<img src="'+imageData+'" alt="Preview">'; }; reader.readAsDataURL(file); });
-    form.addEventListener('submit', (e) => {
-        e.preventDefault();
-        const name = document.getElementById('prodName').value.trim(), category = document.getElementById('prodCategory').value, material = document.getElementById('prodMaterial').value, description = document.getElementById('prodDesc').value.trim();
-        if (!name || !category || !material) return;
-        const products = getProducts(currentType); products.push({ id: currentType+'-'+Date.now(), name, category, material, description, image: imageData || '' }); saveProducts(currentType, products);
-        form.reset(); preview.innerHTML = ''; imageData = ''; modal.classList.remove('active'); renderProducts();
-        const notif = document.createElement('div'); notif.textContent = 'Producto agregado exitosamente';
-        Object.assign(notif.style, { position:'fixed', bottom:'100px', left:'50%', transform:'translateX(-50%)', background:'#0B6E4F', color:'#fff', padding:'14px 28px', borderRadius:'8px', fontSize:'0.92rem', fontFamily:"'Lato',sans-serif", boxShadow:'0 4px 20px rgba(0,0,0,0.2)', zIndex:'9999' });
-        document.body.appendChild(notif); setTimeout(() => { notif.style.opacity = '0'; notif.style.transition = 'opacity 0.3s'; setTimeout(() => notif.remove(), 300); }, 2500);
-    });
+    if (toggle && nav) {
+        toggle.addEventListener('click', () => { nav.classList.toggle('open'); });
+        nav.querySelectorAll('a').forEach(link => { link.addEventListener('click', () => { nav.classList.remove('open'); }); });
+    }
 });
     </script>
+    <script type="module" src="assets/js/products.js"></script>
 </body>
 </html>

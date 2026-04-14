@@ -1,154 +1,19 @@
 /* ========================================
-   ESENCIA VERDE - Products & Inventory System
-   Productos se guardan en localStorage.
-   Campos de inventario: available (en stock),
-   visible (mostrar en la página pública).
+   ESENCIA VERDE - Products (Firestore)
+   Real-time product rendering for:
+     - categoria.html (grid by type)
+     - index.html (featured "Diseños Exclusivos")
+   Exports Inventory API used by admin.html
    ======================================== */
 
-document.addEventListener('DOMContentLoaded', () => {
-    initCategoryPage();
-    initFilters();
-    initAdminPanel();
-});
-
-/* Auto-refresh public page when inventory changes in another tab */
-window.addEventListener('storage', (e) => {
-    if (e.key && e.key.startsWith('ev_products_') && document.getElementById('productsGrid')) {
-        renderProducts();
-    }
-});
-
-/* ========== DEFAULT PRODUCTS ========== */
-const DEFAULT_PRODUCTS = {
-    oro: [
-        {
-            id: 'oro-1',
-            name: 'Collar Esmeralda Corazón',
-            category: 'dijes',
-            material: 'oro-esmeralda',
-            description: 'Oro 18k con esmeralda colombiana en talla corazón rodeada de diamantes naturales',
-            image: 'assets/images/collar-esmeralda.png',
-            available: true,
-            visible: true
-        },
-        {
-            id: 'oro-2',
-            name: 'Aretes Esmeralda y Diamantes',
-            category: 'aretes',
-            material: 'oro-esmeralda',
-            description: 'Oro 18k, esmeraldas naturales certificadas con 26 diamantes naturales',
-            image: 'assets/images/aretes-certificado.jpeg',
-            available: true,
-            visible: true
-        },
-        {
-            id: 'oro-3',
-            name: 'Aretes Colgantes Halo',
-            category: 'aretes',
-            material: 'oro-esmeralda',
-            description: 'Oro 18k con esmeraldas colombianas y halo de diamantes',
-            image: 'assets/images/aretes-oro.jpeg',
-            available: true,
-            visible: true
-        },
-        {
-            id: 'oro-4',
-            name: 'Anillo Solitario Esmeralda',
-            category: 'anillos',
-            material: 'oro-esmeralda',
-            description: 'Oro 18k con esmeralda natural y diamantes laterales',
-            image: 'assets/images/anillo-esmeralda.png',
-            available: true,
-            visible: true
-        },
-        {
-            id: 'oro-5',
-            name: 'Collares Layering Esmeralda',
-            category: 'cadenas',
-            material: 'oro-esmeralda',
-            description: 'Oro 18k, set de collares con esmeraldas en cortes rectangulares',
-            image: 'assets/images/collar-modelo.png',
-            available: true,
-            visible: true
-        },
-        {
-            id: 'oro-6',
-            name: 'Collar Delicado Esmeralda',
-            category: 'cadenas',
-            material: 'oro-esmeralda',
-            description: 'Oro 18k, esmeralda natural talla esmeralda en cadena delicada',
-            image: 'assets/images/collar-modelo2.png',
-            available: true,
-            visible: true
-        }
-    ],
-    plata: [
-        {
-            id: 'plata-1',
-            name: 'Anillo Esmeralda Plata',
-            category: 'anillos',
-            material: 'plata-esmeralda',
-            description: 'Plata 925 con esmeralda colombiana natural, diseño clásico',
-            image: '',
-            available: true,
-            visible: true
-        },
-        {
-            id: 'plata-2',
-            name: 'Aretes Esmeralda Plata',
-            category: 'aretes',
-            material: 'plata-esmeralda',
-            description: 'Plata 925, esmeraldas naturales con acabado rodio',
-            image: '',
-            available: true,
-            visible: true
-        },
-        {
-            id: 'plata-3',
-            name: 'Dije Gota Esmeralda',
-            category: 'dijes',
-            material: 'plata-esmeralda',
-            description: 'Plata 925, esmeralda natural en talla gota',
-            image: '',
-            available: true,
-            visible: true
-        },
-        {
-            id: 'plata-4',
-            name: 'Pulsera Tennis Esmeralda',
-            category: 'pulseras',
-            material: 'plata-esmeralda',
-            description: 'Plata 925, pulsera tennis con esmeraldas naturales',
-            image: '',
-            available: true,
-            visible: true
-        },
-        {
-            id: 'plata-5',
-            name: 'Cadena Plata 925',
-            category: 'cadenas',
-            material: 'plata',
-            description: 'Cadena en plata 925 con acabado brillante, varios largos disponibles',
-            image: '',
-            available: true,
-            visible: true
-        },
-        {
-            id: 'plata-6',
-            name: 'Set Esmeralda Plata',
-            category: 'sets',
-            material: 'plata-esmeralda',
-            description: 'Set completo en plata 925: aretes, dije y anillo con esmeraldas',
-            image: '',
-            available: true,
-            visible: true
-        }
-    ]
-};
-
-/* ========== STATE ========== */
-let currentType = 'oro';
-let currentFilter = 'todos';
+import { db, storage } from './firebase-setup.js';
+import {
+    collection, doc, query, where, orderBy, onSnapshot,
+    addDoc, updateDoc, deleteDoc, getDocs, serverTimestamp
+} from "https://www.gstatic.com/firebasejs/10.14.1/firebase-firestore.js";
+import {
+    ref, uploadBytes, getDownloadURL, deleteObject
+} from "https://www.gstatic.com/firebasejs/10.14.1/firebase-storage.js";
 
 /* ========== LABELS ========== */
 const MATERIAL_LABELS = {
@@ -166,60 +31,106 @@ const CATEGORY_LABELS = {
     'sets': 'Set'
 };
 
-/* ========== STORAGE ========== */
-function getProducts(type) {
-    const stored = localStorage.getItem(`ev_products_${type}`);
-    if (stored) {
-        const parsed = JSON.parse(stored);
-        return parsed.map(p => ({
-            available: true,
-            visible: true,
-            ...p
-        }));
-    }
-    return DEFAULT_PRODUCTS[type] || [];
-}
+/* ========== STATE ========== */
+let currentType = 'oro';
+let currentFilter = 'todos';
+let productsCache = [];
+let unsubscribe = null;
 
-function saveProducts(type, products) {
-    localStorage.setItem(`ev_products_${type}`, JSON.stringify(products));
-}
+/* ========== INVENTORY API (shared with admin) ========== */
+const productsCol = collection(db, 'products');
 
-/* ========== INVENTORY API (used by admin.html) ========== */
-window.Inventory = {
-    getAll(type) {
-        return getProducts(type);
-    },
-    update(type, id, patch) {
-        const products = getProducts(type);
-        const idx = products.findIndex(p => p.id === id);
-        if (idx === -1) return false;
-        products[idx] = { ...products[idx], ...patch };
-        saveProducts(type, products);
-        return true;
-    },
-    remove(type, id) {
-        const products = getProducts(type).filter(p => p.id !== id);
-        saveProducts(type, products);
-    },
-    add(type, product) {
-        const products = getProducts(type);
-        products.push({
-            available: true,
-            visible: true,
-            ...product,
-            id: product.id || type + '-' + Date.now()
+export const Inventory = {
+    /** Live subscribe to all products. Returns unsubscribe fn. */
+    subscribeAll(callback) {
+        const q = query(productsCol, orderBy('createdAt', 'asc'));
+        return onSnapshot(q, (snap) => {
+            const list = snap.docs.map(d => ({ id: d.id, ...d.data() }));
+            callback(list);
+        }, (err) => {
+            console.error('Error loading products:', err);
         });
-        saveProducts(type, products);
     },
-    resetDefaults(type) {
-        localStorage.removeItem(`ev_products_${type}`);
+
+    /** One-shot read of all products. */
+    async getAll() {
+        const snap = await getDocs(query(productsCol, orderBy('createdAt', 'asc')));
+        return snap.docs.map(d => ({ id: d.id, ...d.data() }));
+    },
+
+    async add(data, file) {
+        let imageUrl = '';
+        let imagePath = '';
+        if (file) {
+            const uploaded = await uploadImage(file);
+            imageUrl = uploaded.url;
+            imagePath = uploaded.path;
+        }
+        const payload = {
+            name: data.name || '',
+            type: data.type || 'oro',
+            category: data.category || '',
+            material: data.material || '',
+            description: data.description || '',
+            imageUrl,
+            imagePath,
+            available: data.available !== false,
+            visible: data.visible !== false,
+            featured: data.featured === true,
+            createdAt: serverTimestamp()
+        };
+        return await addDoc(productsCol, payload);
+    },
+
+    async update(id, patch, file) {
+        const update = { ...patch };
+        if (file) {
+            const existing = productsCache.find(p => p.id === id);
+            if (existing?.imagePath) {
+                try { await deleteObject(ref(storage, existing.imagePath)); } catch (e) {}
+            }
+            const uploaded = await uploadImage(file);
+            update.imageUrl = uploaded.url;
+            update.imagePath = uploaded.path;
+        }
+        await updateDoc(doc(db, 'products', id), update);
+    },
+
+    async remove(id) {
+        const existing = productsCache.find(p => p.id === id);
+        if (existing?.imagePath) {
+            try { await deleteObject(ref(storage, existing.imagePath)); } catch (e) {}
+        }
+        await deleteDoc(doc(db, 'products', id));
     }
 };
 
-/* ========== INIT CATEGORY PAGE ========== */
-function initCategoryPage() {
-    if (!document.getElementById('productsGrid')) return;
+// Expose on window so non-module code (if any) can use it
+window.Inventory = Inventory;
 
+/* ========== IMAGE UPLOAD ========== */
+async function uploadImage(file) {
+    const safeName = file.name.replace(/[^a-zA-Z0-9._-]/g, '_');
+    const path = `products/${Date.now()}_${safeName}`;
+    const storageRef = ref(storage, path);
+    await uploadBytes(storageRef, file);
+    const url = await getDownloadURL(storageRef);
+    return { url, path };
+}
+
+/* ========== PUBLIC PAGE BOOTSTRAP ========== */
+document.addEventListener('DOMContentLoaded', () => {
+    if (document.getElementById('productsGrid')) {
+        initCategoryPage();
+        initFilters();
+    }
+    if (document.getElementById('featuredGrid')) {
+        initFeaturedSection();
+    }
+});
+
+/* ========== CATEGORY PAGE ========== */
+function initCategoryPage() {
     const params = new URLSearchParams(window.location.search);
     currentType = params.get('tipo') || 'oro';
     const cat = params.get('cat');
@@ -239,18 +150,24 @@ function initCategoryPage() {
         });
     }
 
-    renderProducts();
+    // Subscribe to real-time updates
+    if (unsubscribe) unsubscribe();
+    unsubscribe = Inventory.subscribeAll((list) => {
+        productsCache = list;
+        renderCategoryProducts();
+    });
 }
 
-/* ========== RENDER PRODUCTS (public page) ========== */
-function renderProducts() {
+function renderCategoryProducts() {
     const grid = document.getElementById('productsGrid');
     if (!grid) return;
 
-    const products = getProducts(currentType).filter(p => p.visible !== false);
+    const list = productsCache.filter(p =>
+        p.type === currentType && p.visible !== false
+    );
     const filtered = currentFilter === 'todos'
-        ? products
-        : products.filter(p => p.category === currentFilter);
+        ? list
+        : list.filter(p => p.category === currentFilter);
 
     if (filtered.length === 0) {
         grid.innerHTML = `
@@ -264,15 +181,13 @@ function renderProducts() {
     }
 
     grid.innerHTML = filtered.map(product => {
-        const imgSrc = product.image || '';
+        const imgSrc = product.imageUrl || '';
         const imgHtml = imgSrc
             ? `<img src="${escapeHtml(imgSrc)}" alt="${escapeHtml(product.name)}" loading="lazy">`
             : `<div style="width:100%;height:100%;display:flex;align-items:center;justify-content:center;background:linear-gradient(135deg,#f5f5e8,#e8e8e0);"><i class="fas fa-gem" style="font-size:3rem;color:#ccc;"></i></div>`;
 
         const isAvailable = product.available !== false;
-        const soldOutOverlay = isAvailable
-            ? ''
-            : `<div class="sold-out-overlay">Agotado</div>`;
+        const soldOutOverlay = isAvailable ? '' : `<div class="sold-out-overlay">Agotado</div>`;
         const btnHtml = isAvailable
             ? `<button class="btn-consult" onclick="consultProduct('${escapeHtml(product.name)}')">
                     <i class="fab fa-whatsapp"></i> Consultar
@@ -291,7 +206,7 @@ function renderProducts() {
                 <div class="product-info">
                     <div class="product-material">${escapeHtml(MATERIAL_LABELS[product.material] || product.material)}</div>
                     <h4>${escapeHtml(product.name)}</h4>
-                    <p>${escapeHtml(product.description)}</p>
+                    <p>${escapeHtml(product.description || '')}</p>
                 </div>
                 <div class="product-actions">
                     ${btnHtml}
@@ -308,105 +223,63 @@ function initFilters() {
             document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
             btn.classList.add('active');
             currentFilter = btn.dataset.filter;
-            renderProducts();
+            renderCategoryProducts();
         });
     });
 }
 
+/* ========== FEATURED (index.html "Diseños Exclusivos") ========== */
+function initFeaturedSection() {
+    Inventory.subscribeAll((list) => {
+        productsCache = list;
+        renderFeatured();
+    });
+}
+
+function renderFeatured() {
+    const grid = document.getElementById('featuredGrid');
+    if (!grid) return;
+
+    const featured = productsCache.filter(p =>
+        p.featured === true && p.visible !== false
+    ).slice(0, 6);
+
+    if (featured.length === 0) {
+        grid.innerHTML = `
+            <div style="grid-column:1/-1;text-align:center;padding:40px 20px;color:#888;">
+                <i class="fas fa-gem" style="font-size:2.5rem;opacity:0.3;margin-bottom:12px;display:block;"></i>
+                <p>Próximamente nuevos diseños exclusivos</p>
+            </div>
+        `;
+        return;
+    }
+
+    grid.innerHTML = featured.map(p => {
+        const isAvailable = p.available !== false;
+        const imgSrc = p.imageUrl || '';
+        const imgHtml = imgSrc
+            ? `<img src="${escapeHtml(imgSrc)}" alt="${escapeHtml(p.name)}" loading="lazy">`
+            : `<div style="width:100%;height:100%;display:flex;align-items:center;justify-content:center;background:linear-gradient(135deg,#f5f5e8,#e8e8e0);"><i class="fas fa-gem" style="font-size:3rem;color:#ccc;"></i></div>`;
+        const soldOut = isAvailable ? '' : `<div class="sold-out-overlay">Agotado</div>`;
+        return `
+            <div class="exclusive-card${isAvailable ? '' : ' sold-out'}">
+                <div class="exclusive-img">${imgHtml}${soldOut}</div>
+                <div class="exclusive-info">
+                    <h4>${escapeHtml(p.name)}</h4>
+                    <p>${escapeHtml(p.description || '')}</p>
+                </div>
+            </div>
+        `;
+    }).join('');
+}
+
 /* ========== CONSULT VIA WHATSAPP ========== */
-function consultProduct(productName) {
+window.consultProduct = function(productName) {
     const text = encodeURIComponent(
         `Hola, estoy interesado/a en el producto "${productName}" que vi en su página web. ¿Me pueden dar más información?`
     );
     window.open(`https://wa.me/573152435998?text=${text}`, '_blank');
-}
-
-/* ========== ADMIN PANEL (quick add on category page) ========== */
-function initAdminPanel() {
-    const fab = document.getElementById('adminFab');
-    const modal = document.getElementById('addProductModal');
-    const closeBtn = document.getElementById('closeModal');
-    const form = document.getElementById('addProductForm');
-    const imageInput = document.getElementById('prodImage');
-    const preview = document.getElementById('filePreview');
-
-    if (!fab || !modal) return;
-
-    fab.addEventListener('click', () => modal.classList.add('active'));
-
-    closeBtn.addEventListener('click', () => {
-        modal.classList.remove('active');
-        form.reset();
-        preview.innerHTML = '';
-    });
-
-    modal.addEventListener('click', (e) => {
-        if (e.target === modal) {
-            modal.classList.remove('active');
-            form.reset();
-            preview.innerHTML = '';
-        }
-    });
-
-    let imageData = '';
-    imageInput.addEventListener('change', (e) => {
-        const file = e.target.files[0];
-        if (!file) return;
-        const reader = new FileReader();
-        reader.onload = (ev) => {
-            imageData = ev.target.result;
-            preview.innerHTML = `<img src="${imageData}" alt="Preview">`;
-        };
-        reader.readAsDataURL(file);
-    });
-
-    form.addEventListener('submit', (e) => {
-        e.preventDefault();
-        const name = document.getElementById('prodName').value.trim();
-        const category = document.getElementById('prodCategory').value;
-        const material = document.getElementById('prodMaterial').value;
-        const description = document.getElementById('prodDesc').value.trim();
-        if (!name || !category || !material) return;
-
-        window.Inventory.add(currentType, {
-            name, category, material, description,
-            image: imageData || ''
-        });
-
-        form.reset();
-        preview.innerHTML = '';
-        imageData = '';
-        modal.classList.remove('active');
-        renderProducts();
-        showNotification('Producto agregado exitosamente');
-    });
-}
-
-/* ========== NOTIFICATION ========== */
-function showNotification(message) {
-    const notif = document.createElement('div');
-    notif.textContent = message;
-    Object.assign(notif.style, {
-        position: 'fixed',
-        bottom: '100px',
-        left: '50%',
-        transform: 'translateX(-50%)',
-        background: '#0B6E4F',
-        color: '#fff',
-        padding: '14px 28px',
-        borderRadius: '8px',
-        fontSize: '0.92rem',
-        fontFamily: "'Lato', sans-serif",
-        boxShadow: '0 4px 20px rgba(0,0,0,0.2)',
-        zIndex: '9999',
-        transition: 'opacity 0.3s ease'
-    });
-    document.body.appendChild(notif);
-    setTimeout(() => {
-        notif.style.opacity = '0';
-        setTimeout(() => notif.remove(), 300);
-    }, 2500);
-}
+};
 
 /* ========== UTILITY ========== */
 function escapeHtml(str) {

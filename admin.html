@@ -127,8 +127,23 @@ tr.hidden-row td { opacity: 0.5; background: #faf8f0; }
 </head>
 <body>
 
+<!-- LOGIN GATE -->
+<div id="loginGate">
+    <div class="login-wrap">
+        <i class="fas fa-lock lock"></i>
+        <h2>Panel de Inventario</h2>
+        <p>Ingresa tus credenciales para administrar los productos</p>
+        <form id="loginForm">
+            <input type="email" id="loginEmail" placeholder="Correo" autocomplete="username" required>
+            <input type="password" id="loginPass" placeholder="Contraseña" autocomplete="current-password" required>
+            <button type="submit">Entrar</button>
+            <div class="err" id="loginErr"></div>
+        </form>
+    </div>
+</div>
+
 <!-- ADMIN APP -->
-<div id="adminApp">
+<div id="adminApp" style="display:none;">
 
 <header class="admin-header">
     <div class="admin-header-inner">
@@ -143,14 +158,14 @@ tr.hidden-row td { opacity: 0.5; background: #faf8f0; }
 <div class="container">
 
     <div class="tabs">
-        <button class="tab active" data-type="oro"><i class="fas fa-crown"></i> Joyería en Oro</button>
+        <button class="tab active" data-type="todos"><i class="fas fa-th"></i> Todos</button>
+        <button class="tab" data-type="oro"><i class="fas fa-crown"></i> Joyería en Oro</button>
         <button class="tab" data-type="plata"><i class="fas fa-ring"></i> Joyería en Plata</button>
     </div>
 
     <div class="toolbar">
         <div class="stats" id="stats"></div>
         <div class="actions">
-            <button class="btn btn-ghost" id="resetBtn" title="Restablecer productos por defecto"><i class="fas fa-undo"></i> Restablecer</button>
             <button class="btn btn-primary" id="addBtn"><i class="fas fa-plus"></i> Agregar producto</button>
         </div>
     </div>
@@ -161,10 +176,12 @@ tr.hidden-row td { opacity: 0.5; background: #faf8f0; }
                 <tr>
                     <th style="width:80px;">Imagen</th>
                     <th>Producto</th>
-                    <th style="width:110px;">Categoría</th>
-                    <th style="width:110px;">Disponible</th>
-                    <th style="width:110px;">Visible</th>
-                    <th style="width:140px;">Acciones</th>
+                    <th style="width:100px;">Tipo</th>
+                    <th style="width:100px;">Categoría</th>
+                    <th style="width:100px;">Disponible</th>
+                    <th style="width:100px;">Visible</th>
+                    <th style="width:100px;">Destacado</th>
+                    <th style="width:120px;">Acciones</th>
                 </tr>
             </thead>
             <tbody id="tbody"></tbody>
@@ -187,6 +204,13 @@ tr.hidden-row td { opacity: 0.5; background: #faf8f0; }
             </div>
             <div class="form-row">
                 <div class="form-group">
+                    <label>Tipo</label>
+                    <select id="fType" required>
+                        <option value="oro">Joyería en Oro</option>
+                        <option value="plata">Joyería en Plata</option>
+                    </select>
+                </div>
+                <div class="form-group">
                     <label>Categoría</label>
                     <select id="fCategory" required>
                         <option value="">Elegir...</option>
@@ -198,6 +222,8 @@ tr.hidden-row td { opacity: 0.5; background: #faf8f0; }
                         <option value="sets">Sets</option>
                     </select>
                 </div>
+            </div>
+            <div class="form-row">
                 <div class="form-group">
                     <label>Material</label>
                     <select id="fMaterial" required>
@@ -207,6 +233,12 @@ tr.hidden-row td { opacity: 0.5; background: #faf8f0; }
                         <option value="plata">Plata 925</option>
                         <option value="plata-esmeralda">Plata 925 + Esmeralda</option>
                     </select>
+                </div>
+                <div class="form-group">
+                    <label style="display:flex;align-items:center;gap:10px;margin-top:30px;">
+                        <input type="checkbox" id="fFeatured" style="width:auto;">
+                        <span style="text-transform:none;letter-spacing:0;font-size:0.9rem;">Mostrar en "Diseños Exclusivos"</span>
+                    </label>
                 </div>
             </div>
             <div class="form-group">
@@ -230,83 +262,124 @@ tr.hidden-row td { opacity: 0.5; background: #faf8f0; }
     </div>
 </div>
 
-<script src="assets/js/products.js"></script>
-<script>
-/* ========== INIT ========== */
-document.addEventListener('DOMContentLoaded', () => render());
+<script type="module">
+import { auth } from './assets/js/firebase-setup.js';
+import { Inventory } from './assets/js/products.js';
+import {
+    signInWithEmailAndPassword, signOut, onAuthStateChanged
+} from "https://www.gstatic.com/firebasejs/10.14.1/firebase-auth.js";
 
-document.getElementById('logoutBtn').addEventListener('click', () => {
-    location.href = 'index.html';
+/* ========== LOGIN GATE ========== */
+const loginGate = document.getElementById('loginGate');
+const adminApp = document.getElementById('adminApp');
+const loginForm = document.getElementById('loginForm');
+const loginErr = document.getElementById('loginErr');
+
+onAuthStateChanged(auth, (user) => {
+    if (user) {
+        loginGate.style.display = 'none';
+        adminApp.style.display = 'block';
+        startInventoryListener();
+    } else {
+        loginGate.style.display = 'block';
+        adminApp.style.display = 'none';
+    }
 });
 
-/* ========== ADMIN STATE ========== */
-let adminType = 'oro';
-let editingId = null;
-let imageData = '';
+loginForm.addEventListener('submit', async (e) => {
+    e.preventDefault();
+    loginErr.textContent = '';
+    try {
+        await signInWithEmailAndPassword(
+            auth,
+            document.getElementById('loginEmail').value.trim(),
+            document.getElementById('loginPass').value
+        );
+    } catch (err) {
+        loginErr.textContent = 'Credenciales incorrectas o error de conexión';
+    }
+});
 
-const ADMIN_CATEGORY_LABELS = {
+document.getElementById('logoutBtn').addEventListener('click', async () => {
+    await signOut(auth);
+});
+
+/* ========== STATE ========== */
+let adminFilter = 'todos';
+let editingId = null;
+let selectedFile = null;
+let productsCache = [];
+let listenerUnsub = null;
+
+const CAT_LABELS = {
     anillos: 'Anillo', aretes: 'Aretes', dijes: 'Dije',
     pulseras: 'Pulsera', cadenas: 'Cadena', sets: 'Set'
 };
+
+function startInventoryListener() {
+    if (listenerUnsub) listenerUnsub();
+    listenerUnsub = Inventory.subscribeAll((list) => {
+        productsCache = list;
+        render();
+    });
+}
 
 /* ========== TABS ========== */
 document.querySelectorAll('.tab').forEach(tab => {
     tab.addEventListener('click', () => {
         document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
         tab.classList.add('active');
-        adminType = tab.dataset.type;
+        adminFilter = tab.dataset.type;
         render();
     });
 });
 
 /* ========== RENDER ========== */
 function render() {
-    const products = window.Inventory.getAll(adminType);
     const tbody = document.getElementById('tbody');
     const stats = document.getElementById('stats');
 
-    const visibleCount = products.filter(p => p.visible !== false).length;
-    const availableCount = products.filter(p => p.available !== false).length;
-    stats.innerHTML = `<strong>${products.length}</strong> productos · <strong>${visibleCount}</strong> visibles · <strong>${availableCount}</strong> disponibles`;
+    const filtered = adminFilter === 'todos'
+        ? productsCache
+        : productsCache.filter(p => p.type === adminFilter);
 
-    if (products.length === 0) {
-        tbody.innerHTML = `<tr><td colspan="6"><div class="empty"><i class="fas fa-box-open"></i><p>No hay productos. Agrega el primero.</p></div></td></tr>`;
+    const visibleCount = productsCache.filter(p => p.visible !== false).length;
+    const availableCount = productsCache.filter(p => p.available !== false).length;
+    const featuredCount = productsCache.filter(p => p.featured === true).length;
+    stats.innerHTML = `<strong>${productsCache.length}</strong> productos · <strong>${visibleCount}</strong> visibles · <strong>${availableCount}</strong> disponibles · <strong>${featuredCount}</strong> destacados`;
+
+    if (filtered.length === 0) {
+        tbody.innerHTML = `<tr><td colspan="8"><div class="empty"><i class="fas fa-box-open"></i><p>No hay productos. Agrega el primero.</p></div></td></tr>`;
         return;
     }
 
-    tbody.innerHTML = products.map(p => {
-        const img = p.image
-            ? `<img src="${esc(p.image)}" class="thumb" alt="">`
+    tbody.innerHTML = filtered.map(p => {
+        const img = p.imageUrl
+            ? `<img src="${esc(p.imageUrl)}" class="thumb" alt="">`
             : `<div class="thumb-placeholder"><i class="fas fa-gem"></i></div>`;
         const isHidden = p.visible === false;
         return `
-            <tr class="${isHidden ? 'hidden-row' : ''}">
+            <tr class="${isHidden ? 'hidden-row' : ''}" data-id="${esc(p.id)}">
                 <td data-label="Imagen">${img}</td>
                 <td data-label="Producto">
                     <div class="cell-name">${esc(p.name)}</div>
                     <div class="cell-desc">${esc(p.description || '')}</div>
                 </td>
-                <td data-label="Categoría"><span class="chip">${esc(ADMIN_CATEGORY_LABELS[p.category] || p.category)}</span></td>
+                <td data-label="Tipo"><span class="chip">${p.type === 'oro' ? 'Oro' : 'Plata'}</span></td>
+                <td data-label="Categoría"><span class="chip">${esc(CAT_LABELS[p.category] || p.category)}</span></td>
                 <td data-label="Disponible">
-                    <label class="switch-wrap">
-                        <span class="switch">
-                            <input type="checkbox" ${p.available !== false ? 'checked' : ''} onchange="toggleField('${esc(p.id)}','available',this.checked)">
-                            <span class="slider"></span>
-                        </span>
-                    </label>
+                    <label class="switch"><input type="checkbox" data-toggle="available" ${p.available !== false ? 'checked' : ''}><span class="slider"></span></label>
                 </td>
                 <td data-label="Visible">
-                    <label class="switch-wrap">
-                        <span class="switch">
-                            <input type="checkbox" ${p.visible !== false ? 'checked' : ''} onchange="toggleField('${esc(p.id)}','visible',this.checked)">
-                            <span class="slider"></span>
-                        </span>
-                    </label>
+                    <label class="switch"><input type="checkbox" data-toggle="visible" ${p.visible !== false ? 'checked' : ''}><span class="slider"></span></label>
+                </td>
+                <td data-label="Destacado">
+                    <label class="switch"><input type="checkbox" data-toggle="featured" ${p.featured === true ? 'checked' : ''}><span class="slider"></span></label>
                 </td>
                 <td data-label="Acciones">
                     <div class="row-actions">
-                        <button class="btn btn-ghost btn-sm" onclick="editProduct('${esc(p.id)}')"><i class="fas fa-pen"></i></button>
-                        <button class="btn btn-danger btn-sm" onclick="deleteProduct('${esc(p.id)}')"><i class="fas fa-trash"></i></button>
+                        <button class="btn btn-ghost btn-sm" data-action="edit" title="Editar"><i class="fas fa-pen"></i></button>
+                        <button class="btn btn-danger btn-sm" data-action="delete" title="Eliminar"><i class="fas fa-trash"></i></button>
                     </div>
                 </td>
             </tr>
@@ -314,41 +387,40 @@ function render() {
     }).join('');
 }
 
-function esc(s) {
-    if (s === null || s === undefined) return '';
-    return String(s).replace(/[&<>"']/g, c => ({
-        '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;'
-    }[c]));
-}
+/* ========== TABLE EVENT DELEGATION ========== */
+document.getElementById('tbody').addEventListener('change', async (e) => {
+    const input = e.target;
+    if (input.tagName !== 'INPUT' || !input.dataset.toggle) return;
+    const row = input.closest('tr');
+    const id = row?.dataset.id;
+    if (!id) return;
+    try {
+        await Inventory.update(id, { [input.dataset.toggle]: input.checked });
+    } catch (err) {
+        alert('Error al actualizar: ' + err.message);
+        input.checked = !input.checked;
+    }
+});
 
-/* ========== INVENTORY ACTIONS ========== */
-window.toggleField = function(id, field, value) {
-    window.Inventory.update(adminType, id, { [field]: value });
-    render();
-};
-
-window.editProduct = function(id) {
-    const p = window.Inventory.getAll(adminType).find(x => x.id === id);
+document.getElementById('tbody').addEventListener('click', async (e) => {
+    const btn = e.target.closest('button[data-action]');
+    if (!btn) return;
+    const id = btn.closest('tr')?.dataset.id;
+    if (!id) return;
+    const p = productsCache.find(x => x.id === id);
     if (!p) return;
-    editingId = id;
-    imageData = p.image || '';
-    document.getElementById('modalTitle').textContent = 'Editar producto';
-    document.getElementById('fId').value = p.id;
-    document.getElementById('fName').value = p.name || '';
-    document.getElementById('fCategory').value = p.category || '';
-    document.getElementById('fMaterial').value = p.material || '';
-    document.getElementById('fDesc').value = p.description || '';
-    document.getElementById('fPreview').innerHTML = p.image ? `<img src="${esc(p.image)}">` : '';
-    openModal();
-};
 
-window.deleteProduct = function(id) {
-    const p = window.Inventory.getAll(adminType).find(x => x.id === id);
-    if (!p) return;
-    if (!confirm(`¿Eliminar "${p.name}"? Esta acción no se puede deshacer.`)) return;
-    window.Inventory.remove(adminType, id);
-    render();
-};
+    if (btn.dataset.action === 'edit') {
+        openEditModal(p);
+    } else if (btn.dataset.action === 'delete') {
+        if (!confirm(`¿Eliminar "${p.name}"? Esta acción no se puede deshacer.`)) return;
+        try {
+            await Inventory.remove(id);
+        } catch (err) {
+            alert('Error al eliminar: ' + err.message);
+        }
+    }
+});
 
 /* ========== MODAL ========== */
 const modal = document.getElementById('productModal');
@@ -358,19 +430,35 @@ function closeModal() {
     document.getElementById('productForm').reset();
     document.getElementById('fPreview').innerHTML = '';
     editingId = null;
-    imageData = '';
+    selectedFile = null;
+}
+
+function openEditModal(p) {
+    editingId = p.id;
+    selectedFile = null;
+    document.getElementById('modalTitle').textContent = 'Editar producto';
+    document.getElementById('fId').value = p.id;
+    document.getElementById('fName').value = p.name || '';
+    document.getElementById('fType').value = p.type || 'oro';
+    document.getElementById('fCategory').value = p.category || '';
+    document.getElementById('fMaterial').value = p.material || '';
+    document.getElementById('fDesc').value = p.description || '';
+    document.getElementById('fFeatured').checked = p.featured === true;
+    document.getElementById('fPreview').innerHTML = p.imageUrl ? `<img src="${esc(p.imageUrl)}">` : '';
+    openModal();
 }
 
 document.getElementById('addBtn').addEventListener('click', () => {
     editingId = null;
-    imageData = '';
+    selectedFile = null;
     document.getElementById('modalTitle').textContent = 'Agregar producto';
     document.getElementById('productForm').reset();
     document.getElementById('fPreview').innerHTML = '';
-    const defaultMaterial = adminType === 'oro' ? 'oro-esmeralda' : 'plata-esmeralda';
-    document.getElementById('fMaterial').value = defaultMaterial;
+    document.getElementById('fType').value = adminFilter === 'plata' ? 'plata' : 'oro';
+    document.getElementById('fMaterial').value = adminFilter === 'plata' ? 'plata-esmeralda' : 'oro-esmeralda';
     openModal();
 });
+
 document.getElementById('modalClose').addEventListener('click', closeModal);
 document.getElementById('cancelBtn').addEventListener('click', closeModal);
 modal.addEventListener('click', (e) => { if (e.target === modal) closeModal(); });
@@ -378,40 +466,55 @@ modal.addEventListener('click', (e) => { if (e.target === modal) closeModal(); }
 document.getElementById('fImage').addEventListener('change', (e) => {
     const file = e.target.files[0];
     if (!file) return;
+    selectedFile = file;
     const reader = new FileReader();
     reader.onload = (ev) => {
-        imageData = ev.target.result;
-        document.getElementById('fPreview').innerHTML = `<img src="${imageData}">`;
+        document.getElementById('fPreview').innerHTML = `<img src="${ev.target.result}">`;
     };
     reader.readAsDataURL(file);
 });
 
-document.getElementById('productForm').addEventListener('submit', (e) => {
+document.getElementById('productForm').addEventListener('submit', async (e) => {
     e.preventDefault();
+    const submitBtn = e.target.querySelector('button[type="submit"]');
+    const originalText = submitBtn.innerHTML;
+    submitBtn.disabled = true;
+    submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Guardando...';
+
     const data = {
         name: document.getElementById('fName').value.trim(),
+        type: document.getElementById('fType').value,
         category: document.getElementById('fCategory').value,
         material: document.getElementById('fMaterial').value,
         description: document.getElementById('fDesc').value.trim(),
-        image: imageData
+        featured: document.getElementById('fFeatured').checked
     };
-    if (!data.name || !data.category || !data.material) return;
-
-    if (editingId) {
-        window.Inventory.update(adminType, editingId, data);
-    } else {
-        window.Inventory.add(adminType, data);
+    if (!data.name || !data.category || !data.material || !data.type) {
+        submitBtn.disabled = false;
+        submitBtn.innerHTML = originalText;
+        return;
     }
-    closeModal();
-    render();
+    try {
+        if (editingId) {
+            await Inventory.update(editingId, data, selectedFile);
+        } else {
+            await Inventory.add(data, selectedFile);
+        }
+        closeModal();
+    } catch (err) {
+        alert('Error al guardar: ' + err.message);
+    } finally {
+        submitBtn.disabled = false;
+        submitBtn.innerHTML = originalText;
+    }
 });
 
-/* ========== RESET ========== */
-document.getElementById('resetBtn').addEventListener('click', () => {
-    if (!confirm(`¿Restablecer todos los productos de ${adminType} a los valores por defecto? Se perderán los cambios hechos aquí.`)) return;
-    window.Inventory.resetDefaults(adminType);
-    render();
-});
+function esc(s) {
+    if (s === null || s === undefined) return '';
+    return String(s).replace(/[&<>"']/g, c => ({
+        '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;'
+    }[c]));
+}
 </script>
 
 </body>
