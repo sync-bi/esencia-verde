@@ -349,7 +349,12 @@ function render() {
     stats.innerHTML = `<strong>${productsCache.length}</strong> productos · <strong>${visibleCount}</strong> visibles · <strong>${availableCount}</strong> disponibles · <strong>${featuredCount}</strong> destacados`;
 
     if (filtered.length === 0) {
-        tbody.innerHTML = `<tr><td colspan="8"><div class="empty"><i class="fas fa-box-open"></i><p>No hay productos. Agrega el primero.</p></div></td></tr>`;
+        const seedBtn = productsCache.length === 0
+            ? `<button class="btn btn-primary" id="seedBtn" style="margin-top:16px;"><i class="fas fa-seedling"></i> Cargar productos iniciales</button>`
+            : '';
+        tbody.innerHTML = `<tr><td colspan="8"><div class="empty"><i class="fas fa-box-open"></i><p>No hay productos. Agrega el primero o carga los iniciales.</p>${seedBtn}</div></td></tr>`;
+        const btn = document.getElementById('seedBtn');
+        if (btn) btn.addEventListener('click', seedInitialProducts);
         return;
     }
 
@@ -514,6 +519,76 @@ function esc(s) {
     return String(s).replace(/[&<>"']/g, c => ({
         '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;'
     }[c]));
+}
+
+/* ========== SEED INITIAL PRODUCTS ========== */
+const SEED_PRODUCTS = [
+    // ORO — Featured (home "Diseños Exclusivos")
+    { name: 'Collar Esmeralda Talla Rectangular', type: 'oro', category: 'cadenas', material: 'oro-esmeralda', description: 'Oro 18k, esmeralda colombiana talla rectangular en cadena de oro', image: 'collar-oro-esmeralda.jpeg', featured: true },
+    { name: 'Dije Gota Esmeralda', type: 'oro', category: 'dijes', material: 'oro-esmeralda', description: 'Oro 18k, esmeralda natural en talla gota con cadena delicada', image: 'dije-gota-oro.jpeg', featured: true },
+    { name: 'Set Gota Oro y Esmeralda', type: 'oro', category: 'sets', material: 'oro-esmeralda', description: 'Oro 18k, set de collar y aretes con esmeraldas en talla gota', image: 'set-oro-gota.jpeg', featured: true },
+    { name: 'Aretes Esmeralda Cuadrados', type: 'oro', category: 'aretes', material: 'oro-esmeralda', description: 'Oro 18k, esmeraldas colombianas talla cuadrada con diamantes', image: 'aretes-oro-cuadrados.jpeg', featured: true },
+    { name: 'Dije Redondo Esmeralda', type: 'oro', category: 'dijes', material: 'oro-esmeralda', description: 'Oro 18k, esmeralda natural talla redonda en cadena box', image: 'dije-oro-redondo.jpeg', featured: true },
+    { name: 'Set Plata y Esmeralda Cuadrado', type: 'plata', category: 'sets', material: 'plata-esmeralda', description: 'Plata 925, set de collar y aretes con esmeraldas talla cuadrada y halo', image: 'set-plata-cuadrado.jpeg', featured: true },
+    // ORO — resto
+    { name: 'Collar Esmeralda Corazón', type: 'oro', category: 'dijes', material: 'oro-esmeralda', description: 'Oro 18k con esmeralda colombiana en talla corazón rodeada de diamantes naturales', image: 'collar-esmeralda.png' },
+    { name: 'Aretes Esmeralda y Diamantes', type: 'oro', category: 'aretes', material: 'oro-esmeralda', description: 'Oro 18k, esmeraldas naturales certificadas con 26 diamantes naturales', image: 'aretes-certificado.jpeg' },
+    { name: 'Aretes Colgantes Halo', type: 'oro', category: 'aretes', material: 'oro-esmeralda', description: 'Oro 18k con esmeraldas colombianas y halo de diamantes', image: 'aretes-oro.jpeg' },
+    { name: 'Anillo Solitario Esmeralda', type: 'oro', category: 'anillos', material: 'oro-esmeralda', description: 'Oro 18k con esmeralda natural redonda, diseño delicado', image: 'anillo-oro-esmeralda.jpeg' },
+    { name: 'Anillo Esmeralda Diamantes', type: 'oro', category: 'anillos', material: 'oro-esmeralda', description: 'Oro 18k con esmeralda natural y diamantes laterales', image: 'anillo-esmeralda.png' },
+    { name: 'Aretes Esmeralda Talla Gota', type: 'oro', category: 'aretes', material: 'oro-esmeralda', description: 'Oro 18k con esmeraldas colombianas en talla gota', image: 'aretes-esmeralda.png' },
+    { name: 'Collares Layering Esmeralda', type: 'oro', category: 'cadenas', material: 'oro-esmeralda', description: 'Oro 18k, set de collares con esmeraldas en cortes rectangulares', image: 'collar-modelo.png' },
+    { name: 'Collar Delicado Esmeralda', type: 'oro', category: 'cadenas', material: 'oro-esmeralda', description: 'Oro 18k, esmeralda natural talla esmeralda en cadena delicada', image: 'collar-modelo2.png' },
+    { name: 'Set Gota Esmeralda Delicado', type: 'oro', category: 'sets', material: 'oro-esmeralda', description: 'Oro 18k, set collar y aretes con esmeraldas naturales talla gota', image: 'set-oro-gota2.jpeg' },
+    { name: 'Modelo con Esmeraldas', type: 'oro', category: 'sets', material: 'oro-esmeralda', description: 'Oro 18k, set de aretes y collar con esmeraldas colombianas lucido por modelo', image: 'modelo-esmeraldas.jpeg' },
+    // PLATA
+    { name: 'Anillo Esmeralda Hojas', type: 'plata', category: 'anillos', material: 'plata-esmeralda', description: 'Plata 925 con esmeralda colombiana natural, diseño de hojas con diamantes', image: 'anillo-plata-esmeralda.jpeg' },
+    { name: 'Anillo Esmeralda Entrelazado', type: 'plata', category: 'anillos', material: 'plata-esmeralda', description: 'Plata 925, esmeralda natural talla cuadrada con diseño entrelazado', image: 'anillo-plata-esmeralda2.jpeg' },
+    { name: 'Aretes Halo Esmeralda', type: 'plata', category: 'aretes', material: 'plata-esmeralda', description: 'Plata 925, esmeraldas naturales redondas con halo de circones', image: 'aretes-plata-halo.jpeg' }
+];
+
+async function seedInitialProducts() {
+    if (!confirm(`¿Cargar ${SEED_PRODUCTS.length} productos con sus imágenes? Esto puede tardar 1-2 minutos.`)) return;
+
+    const btn = document.getElementById('seedBtn');
+    if (btn) { btn.disabled = true; }
+
+    // Show progress overlay
+    const overlay = document.createElement('div');
+    overlay.style.cssText = 'position:fixed;inset:0;background:rgba(0,0,0,0.7);z-index:3000;display:flex;align-items:center;justify-content:center;color:white;font-family:Lato,sans-serif;';
+    overlay.innerHTML = `
+        <div style="text-align:center;max-width:400px;padding:40px;">
+            <i class="fas fa-spinner fa-spin" style="font-size:3rem;color:#C9A84C;margin-bottom:20px;"></i>
+            <h3 id="seedStatus" style="font-family:Playfair Display,serif;margin-bottom:8px;">Cargando productos...</h3>
+            <p id="seedProgress" style="opacity:0.8;">Preparando...</p>
+        </div>
+    `;
+    document.body.appendChild(overlay);
+    const status = overlay.querySelector('#seedStatus');
+    const progress = overlay.querySelector('#seedProgress');
+
+    let success = 0;
+    let failed = 0;
+    for (let i = 0; i < SEED_PRODUCTS.length; i++) {
+        const p = SEED_PRODUCTS[i];
+        status.textContent = `(${i + 1}/${SEED_PRODUCTS.length}) ${p.name}`;
+        progress.textContent = 'Descargando imagen y subiendo a Firebase...';
+        try {
+            const response = await fetch(`assets/images/${p.image}`);
+            if (!response.ok) throw new Error('Imagen no encontrada');
+            const blob = await response.blob();
+            const file = new File([blob], p.image, { type: blob.type });
+            const { image, ...productData } = p;
+            await Inventory.add(productData, file);
+            success++;
+        } catch (err) {
+            console.error(`Error con ${p.name}:`, err);
+            failed++;
+        }
+    }
+
+    overlay.remove();
+    alert(`Carga completada.\n\n✓ ${success} productos agregados\n${failed > 0 ? '✗ ' + failed + ' fallaron (ver consola)' : ''}`);
 }
 </script>
 
