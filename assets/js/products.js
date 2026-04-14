@@ -11,6 +11,13 @@ document.addEventListener('DOMContentLoaded', () => {
     initAdminPanel();
 });
 
+/* Auto-refresh public page when inventory changes in another tab */
+window.addEventListener('storage', (e) => {
+    if (e.key && e.key.startsWith('ev_products_') && document.getElementById('productsGrid')) {
+        renderProducts();
+    }
+});
+
 /* ========== DEFAULT PRODUCTS ========== */
 const DEFAULT_PRODUCTS = {
     oro: [
