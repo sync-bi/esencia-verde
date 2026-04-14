@@ -548,12 +548,11 @@ const SEED_PRODUCTS = [
 ];
 
 async function seedInitialProducts() {
-    if (!confirm(`¿Cargar ${SEED_PRODUCTS.length} productos con sus imágenes? Esto puede tardar 1-2 minutos.`)) return;
+    if (!confirm(`¿Cargar ${SEED_PRODUCTS.length} productos? Esto tarda unos segundos.`)) return;
 
     const btn = document.getElementById('seedBtn');
-    if (btn) { btn.disabled = true; }
+    if (btn) btn.disabled = true;
 
-    // Show progress overlay
     const overlay = document.createElement('div');
     overlay.style.cssText = 'position:fixed;inset:0;background:rgba(0,0,0,0.7);z-index:3000;display:flex;align-items:center;justify-content:center;color:white;font-family:Lato,sans-serif;';
     overlay.innerHTML = `
@@ -572,14 +571,10 @@ async function seedInitialProducts() {
     for (let i = 0; i < SEED_PRODUCTS.length; i++) {
         const p = SEED_PRODUCTS[i];
         status.textContent = `(${i + 1}/${SEED_PRODUCTS.length}) ${p.name}`;
-        progress.textContent = 'Descargando imagen y subiendo a Firebase...';
+        progress.textContent = 'Guardando en base de datos...';
         try {
-            const response = await fetch(`assets/images/${p.image}`);
-            if (!response.ok) throw new Error('Imagen no encontrada');
-            const blob = await response.blob();
-            const file = new File([blob], p.image, { type: blob.type });
-            const { image, ...productData } = p;
-            await Inventory.add(productData, file);
+            const { image, ...rest } = p;
+            await Inventory.add({ ...rest, imageUrl: `assets/images/${image}` });
             success++;
         } catch (err) {
             console.error(`Error con ${p.name}:`, err);

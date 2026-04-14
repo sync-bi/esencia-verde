@@ -6,14 +6,11 @@
    Exports Inventory API used by admin.html
    ======================================== */
 
-import { db, storage } from './firebase-setup.js';
+import { db } from './firebase-setup.js';
 import {
-    collection, doc, query, where, orderBy, onSnapshot,
+    collection, doc, query, orderBy, onSnapshot,
     addDoc, updateDoc, deleteDoc, getDocs, serverTimestamp
 } from "https://www.gstatic.com/firebasejs/10.14.1/firebase-firestore.js";
-import {
-    ref, uploadBytes, getDownloadURL, deleteObject
-} from "https://www.gstatic.com/firebasejs/10.14.1/firebase-storage.js";
 
 /* ========== LABELS ========== */
 const MATERIAL_LABELS = {
@@ -59,12 +56,9 @@ export const Inventory = {
     },
 
     async add(data, file) {
-        let imageUrl = '';
-        let imagePath = '';
+        let imageUrl = data.imageUrl || '';
         if (file) {
-            const uploaded = await uploadImage(file);
-            imageUrl = uploaded.url;
-            imagePath = uploaded.path;
+            imageUrl = await compressImage(file);
         }
         const payload = {
             name: data.name || '',
@@ -73,7 +67,6 @@ export const Inventory = {
             material: data.material || '',
             description: data.description || '',
             imageUrl,
-            imagePath,
             available: data.available !== false,
             visible: data.visible !== false,
             featured: data.featured === true,
@@ -85,22 +78,12 @@ export const Inventory = {
     async update(id, patch, file) {
         const update = { ...patch };
         if (file) {
-            const existing = productsCache.find(p => p.id === id);
-            if (existing?.imagePath) {
-                try { await deleteObject(ref(storage, existing.imagePath)); } catch (e) {}
-            }
-            const uploaded = await uploadImage(file);
-            update.imageUrl = uploaded.url;
-            update.imagePath = uploaded.path;
+            update.imageUrl = await compressImage(file);
         }
         await updateDoc(doc(db, 'products', id), update);
     },
 
     async remove(id) {
-        const existing = productsCache.find(p => p.id === id);
-        if (existing?.imagePath) {
-            try { await deleteObject(ref(storage, existing.imagePath)); } catch (e) {}
-        }
         await deleteDoc(doc(db, 'products', id));
     }
 };
@@ -108,14 +91,27 @@ export const Inventory = {
 // Expose on window so non-module code (if any) can use it
 window.Inventory = Inventory;
 
-/* ========== IMAGE UPLOAD ========== */
-async function uploadImage(file) {
-    const safeName = file.name.replace(/[^a-zA-Z0-9._-]/g, '_');
-    const path = `products/${Date.now()}_${safeName}`;
-    const storageRef = ref(storage, path);
-    await uploadBytes(storageRef, file);
-    const url = await getDownloadURL(storageRef);
-    return { url, path };
+/* ========== IMAGE COMPRESSION (client-side, no Storage needed) ========== */
+function compressImage(file, maxWidth = 1200, quality = 0.85) {
+    return new Promise((resolve, reject) => {
+        const reader = new FileReader();
+        reader.onload = (e) => {
+            const img = new Image();
+            img.onload = () => {
+                const canvas = document.createElement('canvas');
+                const scale = Math.min(1, maxWidth / img.width);
+                canvas.width = Math.round(img.width * scale);
+                canvas.height = Math.round(img.height * scale);
+                const ctx = canvas.getContext('2d');
+                ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
+                resolve(canvas.toDataURL('image/jpeg', quality));
+            };
+            img.onerror = reject;
+            img.src = e.target.result;
+        };
+        reader.onerror = reject;
+        reader.readAsDataURL(file);
+    });
 }
 
 /* ========== PUBLIC PAGE BOOTSTRAP ========== */
