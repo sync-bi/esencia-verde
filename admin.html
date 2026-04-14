@@ -1,0 +1,459 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Inventario - Esencia Verde</title>
+    <meta name="robots" content="noindex, nofollow">
+    <link rel="icon" type="image/jpeg" href="assets/images/logo.jpeg">
+    <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;500;600;700&family=Lato:wght@300;400;500;600&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+    <style>
+:root {
+    --emerald: #0B6E4F; --emerald-dark: #064E38; --emerald-light: #0D8B63;
+    --gold: #C9A84C; --ivory: #FFFFF0; --cream: #FAF8F0;
+    --white: #FFFFFF; --black: #1A1A1A; --gray: #6B6B6B; --gray-light: #E8E8E0;
+    --danger: #C0392B;
+    --font-display: 'Playfair Display', Georgia, serif;
+    --font-body: 'Lato', 'Segoe UI', sans-serif;
+    --shadow: 0 4px 20px rgba(0,0,0,0.08);
+    --shadow-lg: 0 10px 40px rgba(0,0,0,0.12);
+    --radius: 8px;
+}
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+body { font-family: var(--font-body); color: var(--black); background: var(--cream); line-height: 1.6; }
+img { max-width: 100%; display: block; }
+button { font-family: var(--font-body); cursor: pointer; border: none; }
+
+/* LAYOUT */
+.admin-header { background: var(--emerald-dark); color: var(--white); padding: 20px 0; box-shadow: var(--shadow); }
+.admin-header-inner { max-width: 1400px; margin: 0 auto; padding: 0 24px; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 16px; }
+.admin-header h1 { font-family: var(--font-display); font-size: 1.6rem; font-weight: 600; display: flex; align-items: center; gap: 12px; }
+.admin-header h1 i { color: var(--gold); }
+.admin-header a.back { color: rgba(255,255,255,0.8); font-size: 0.85rem; text-decoration: none; }
+.admin-header a.back:hover { color: var(--white); }
+
+.container { max-width: 1400px; margin: 0 auto; padding: 32px 24px; }
+
+/* TABS */
+.tabs { display: flex; gap: 8px; margin-bottom: 24px; border-bottom: 2px solid var(--gray-light); }
+.tab { padding: 12px 24px; background: none; font-size: 0.95rem; font-weight: 600; color: var(--gray); text-transform: uppercase; letter-spacing: 0.5px; border-bottom: 3px solid transparent; margin-bottom: -2px; transition: all 0.3s; }
+.tab.active { color: var(--emerald); border-color: var(--emerald); }
+.tab:hover:not(.active) { color: var(--emerald-dark); }
+
+/* TOOLBAR */
+.toolbar { display: flex; justify-content: space-between; align-items: center; gap: 16px; margin-bottom: 20px; flex-wrap: wrap; }
+.toolbar .stats { font-size: 0.9rem; color: var(--gray); }
+.toolbar .stats strong { color: var(--emerald-dark); }
+.toolbar .actions { display: flex; gap: 10px; }
+.btn { padding: 10px 20px; border-radius: var(--radius); font-size: 0.88rem; font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px; display: inline-flex; align-items: center; gap: 8px; transition: all 0.3s; }
+.btn-primary { background: var(--emerald); color: var(--white); }
+.btn-primary:hover { background: var(--emerald-dark); }
+.btn-ghost { background: var(--white); color: var(--gray); border: 1px solid var(--gray-light); }
+.btn-ghost:hover { color: var(--emerald); border-color: var(--emerald); }
+.btn-danger { background: var(--danger); color: var(--white); }
+.btn-danger:hover { opacity: 0.9; }
+.btn-sm { padding: 7px 12px; font-size: 0.78rem; }
+
+/* TABLE */
+.table-wrap { background: var(--white); border-radius: 12px; box-shadow: var(--shadow); overflow: hidden; }
+table { width: 100%; border-collapse: collapse; }
+th { background: var(--cream); text-align: left; padding: 14px 16px; font-size: 0.78rem; color: var(--gray); text-transform: uppercase; letter-spacing: 0.5px; font-weight: 700; border-bottom: 1px solid var(--gray-light); }
+td { padding: 14px 16px; border-bottom: 1px solid var(--gray-light); vertical-align: middle; font-size: 0.9rem; }
+tr:last-child td { border-bottom: none; }
+tr.hidden-row td { opacity: 0.5; background: #faf8f0; }
+.thumb { width: 56px; height: 56px; border-radius: 8px; object-fit: cover; background: var(--gray-light); }
+.thumb-placeholder { width: 56px; height: 56px; border-radius: 8px; background: linear-gradient(135deg, #f5f5e8, #e8e8e0); display: flex; align-items: center; justify-content: center; color: #ccc; }
+.cell-name { font-weight: 600; color: var(--emerald-dark); }
+.cell-desc { font-size: 0.8rem; color: var(--gray); margin-top: 2px; max-width: 320px; overflow: hidden; text-overflow: ellipsis; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; }
+.chip { display: inline-block; padding: 3px 10px; background: rgba(11,110,79,0.08); color: var(--emerald); border-radius: 50px; font-size: 0.72rem; font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px; }
+
+/* SWITCH */
+.switch { position: relative; display: inline-block; width: 44px; height: 24px; }
+.switch input { opacity: 0; width: 0; height: 0; }
+.slider { position: absolute; inset: 0; background: #ccc; border-radius: 24px; cursor: pointer; transition: 0.3s; }
+.slider::before { content: ''; position: absolute; height: 18px; width: 18px; left: 3px; top: 3px; background: white; border-radius: 50%; transition: 0.3s; }
+.switch input:checked + .slider { background: var(--emerald); }
+.switch input:checked + .slider::before { transform: translateX(20px); }
+.switch-wrap { display: flex; align-items: center; gap: 8px; font-size: 0.78rem; color: var(--gray); }
+
+.row-actions { display: flex; gap: 6px; }
+
+.empty { text-align: center; padding: 60px 20px; color: var(--gray); }
+.empty i { font-size: 3rem; opacity: 0.3; margin-bottom: 12px; }
+
+/* MODAL */
+.modal-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.55); z-index: 2000; display: none; align-items: center; justify-content: center; padding: 20px; }
+.modal-overlay.active { display: flex; }
+.modal { background: var(--white); border-radius: 12px; max-width: 560px; width: 100%; max-height: 90vh; overflow-y: auto; padding: 36px; position: relative; }
+.modal h3 { font-family: var(--font-display); color: var(--emerald-dark); font-size: 1.4rem; margin-bottom: 24px; }
+.modal-close { position: absolute; top: 14px; right: 14px; width: 36px; height: 36px; background: var(--gray-light); border-radius: 50%; font-size: 1rem; color: var(--gray); }
+.modal-close:hover { background: var(--danger); color: var(--white); }
+.form-group { margin-bottom: 16px; }
+.form-row { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+.form-group label { display: block; font-size: 0.82rem; font-weight: 600; color: var(--emerald-dark); margin-bottom: 6px; text-transform: uppercase; letter-spacing: 0.3px; }
+.form-group input, .form-group select, .form-group textarea { width: 100%; padding: 12px 16px; border: 1px solid var(--gray-light); border-radius: var(--radius); font-family: var(--font-body); font-size: 0.95rem; background: var(--cream); outline: none; transition: all 0.3s; }
+.form-group input:focus, .form-group select:focus, .form-group textarea:focus { border-color: var(--emerald); box-shadow: 0 0 0 3px rgba(11,110,79,0.1); }
+.form-group textarea { resize: vertical; min-height: 80px; }
+.file-upload { border: 2px dashed var(--gray-light); border-radius: var(--radius); padding: 24px; text-align: center; position: relative; transition: 0.3s; }
+.file-upload:hover { border-color: var(--emerald); }
+.file-upload i { font-size: 1.8rem; color: var(--gray-light); margin-bottom: 6px; }
+.file-upload p { font-size: 0.85rem; color: var(--gray); }
+.file-upload input { position: absolute; inset: 0; opacity: 0; cursor: pointer; }
+.file-preview { margin-top: 12px; }
+.file-preview img { max-width: 120px; border-radius: 8px; border: 2px solid var(--gray-light); }
+.modal-actions { display: flex; gap: 10px; justify-content: flex-end; margin-top: 24px; }
+
+/* LOGIN */
+.login-wrap { max-width: 380px; margin: 100px auto; background: var(--white); padding: 40px 36px; border-radius: 12px; box-shadow: var(--shadow-lg); text-align: center; }
+.login-wrap i.lock { font-size: 2.5rem; color: var(--emerald); margin-bottom: 12px; }
+.login-wrap h2 { font-family: var(--font-display); color: var(--emerald-dark); margin-bottom: 6px; }
+.login-wrap p { font-size: 0.88rem; color: var(--gray); margin-bottom: 24px; }
+.login-wrap input { width: 100%; padding: 14px 18px; border: 1px solid var(--gray-light); border-radius: var(--radius); font-size: 1rem; background: var(--cream); outline: none; margin-bottom: 12px; font-family: var(--font-body); }
+.login-wrap input:focus { border-color: var(--emerald); }
+.login-wrap button { width: 100%; padding: 14px; background: var(--emerald); color: var(--white); border-radius: var(--radius); font-weight: 700; text-transform: uppercase; letter-spacing: 0.5px; }
+.login-wrap .err { color: var(--danger); font-size: 0.85rem; margin-top: 8px; min-height: 20px; }
+
+@media (max-width: 768px) {
+    table, thead, tbody, tr, td, th { display: block; }
+    thead { display: none; }
+    tr { background: var(--white); margin-bottom: 12px; border-radius: 8px; padding: 12px; box-shadow: var(--shadow); }
+    td { border: none; padding: 8px 0; display: flex; justify-content: space-between; align-items: center; }
+    td::before { content: attr(data-label); font-size: 0.72rem; color: var(--gray); text-transform: uppercase; font-weight: 700; margin-right: 12px; }
+    .cell-desc { max-width: 60%; }
+    .form-row { grid-template-columns: 1fr; }
+}
+    </style>
+</head>
+<body>
+
+<!-- LOGIN GATE -->
+<div id="loginGate">
+    <div class="login-wrap">
+        <i class="fas fa-lock lock"></i>
+        <h2>Panel de Inventario</h2>
+        <p>Ingresa la clave para administrar los productos</p>
+        <form id="loginForm">
+            <input type="password" id="loginPass" placeholder="Clave de acceso" autocomplete="current-password" required>
+            <button type="submit">Entrar</button>
+            <div class="err" id="loginErr"></div>
+        </form>
+    </div>
+</div>
+
+<!-- ADMIN APP -->
+<div id="adminApp" style="display:none;">
+
+<header class="admin-header">
+    <div class="admin-header-inner">
+        <h1><i class="fas fa-gem"></i> Inventario · Esencia Verde</h1>
+        <div style="display:flex;gap:16px;align-items:center;">
+            <a href="index.html" class="back"><i class="fas fa-arrow-left"></i> Ver sitio</a>
+            <button class="btn btn-ghost btn-sm" id="logoutBtn"><i class="fas fa-sign-out-alt"></i> Salir</button>
+        </div>
+    </div>
+</header>
+
+<div class="container">
+
+    <div class="tabs">
+        <button class="tab active" data-type="oro"><i class="fas fa-crown"></i> Joyería en Oro</button>
+        <button class="tab" data-type="plata"><i class="fas fa-ring"></i> Joyería en Plata</button>
+    </div>
+
+    <div class="toolbar">
+        <div class="stats" id="stats"></div>
+        <div class="actions">
+            <button class="btn btn-ghost" id="resetBtn" title="Restablecer productos por defecto"><i class="fas fa-undo"></i> Restablecer</button>
+            <button class="btn btn-primary" id="addBtn"><i class="fas fa-plus"></i> Agregar producto</button>
+        </div>
+    </div>
+
+    <div class="table-wrap">
+        <table>
+            <thead>
+                <tr>
+                    <th style="width:80px;">Imagen</th>
+                    <th>Producto</th>
+                    <th style="width:110px;">Categoría</th>
+                    <th style="width:110px;">Disponible</th>
+                    <th style="width:110px;">Visible</th>
+                    <th style="width:140px;">Acciones</th>
+                </tr>
+            </thead>
+            <tbody id="tbody"></tbody>
+        </table>
+    </div>
+
+</div>
+</div>
+
+<!-- PRODUCT MODAL -->
+<div class="modal-overlay" id="productModal">
+    <div class="modal">
+        <button class="modal-close" id="modalClose"><i class="fas fa-times"></i></button>
+        <h3 id="modalTitle">Agregar producto</h3>
+        <form id="productForm">
+            <input type="hidden" id="fId">
+            <div class="form-group">
+                <label>Nombre</label>
+                <input type="text" id="fName" required>
+            </div>
+            <div class="form-row">
+                <div class="form-group">
+                    <label>Categoría</label>
+                    <select id="fCategory" required>
+                        <option value="">Elegir...</option>
+                        <option value="anillos">Anillos</option>
+                        <option value="aretes">Aretes</option>
+                        <option value="dijes">Dijes</option>
+                        <option value="pulseras">Pulseras</option>
+                        <option value="cadenas">Cadenas</option>
+                        <option value="sets">Sets</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label>Material</label>
+                    <select id="fMaterial" required>
+                        <option value="">Elegir...</option>
+                        <option value="oro">Oro 18k</option>
+                        <option value="oro-esmeralda">Oro 18k + Esmeralda</option>
+                        <option value="plata">Plata 925</option>
+                        <option value="plata-esmeralda">Plata 925 + Esmeralda</option>
+                    </select>
+                </div>
+            </div>
+            <div class="form-group">
+                <label>Descripción</label>
+                <textarea id="fDesc" rows="3"></textarea>
+            </div>
+            <div class="form-group">
+                <label>Imagen</label>
+                <div class="file-upload">
+                    <i class="fas fa-cloud-upload-alt"></i>
+                    <p>Haz click o arrastra una imagen</p>
+                    <input type="file" id="fImage" accept="image/*">
+                </div>
+                <div class="file-preview" id="fPreview"></div>
+            </div>
+            <div class="modal-actions">
+                <button type="button" class="btn btn-ghost" id="cancelBtn">Cancelar</button>
+                <button type="submit" class="btn btn-primary"><i class="fas fa-save"></i> Guardar</button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<script src="assets/js/products.js"></script>
+<script>
+/* ========== LOGIN GATE ========== */
+const ADMIN_PASS = 'esencia2026';
+const LS_AUTH = 'ev_admin_auth';
+
+const loginGate = document.getElementById('loginGate');
+const adminApp = document.getElementById('adminApp');
+
+function isAuthed() {
+    return sessionStorage.getItem(LS_AUTH) === '1';
+}
+function showApp() {
+    loginGate.style.display = 'none';
+    adminApp.style.display = 'block';
+    render();
+}
+
+if (isAuthed()) showApp();
+
+document.getElementById('loginForm').addEventListener('submit', (e) => {
+    e.preventDefault();
+    const val = document.getElementById('loginPass').value;
+    if (val === ADMIN_PASS) {
+        sessionStorage.setItem(LS_AUTH, '1');
+        showApp();
+    } else {
+        document.getElementById('loginErr').textContent = 'Clave incorrecta';
+    }
+});
+
+document.getElementById('logoutBtn').addEventListener('click', () => {
+    sessionStorage.removeItem(LS_AUTH);
+    location.reload();
+});
+
+/* ========== ADMIN STATE ========== */
+let currentType = 'oro';
+let editingId = null;
+let imageData = '';
+
+const CATEGORY_LABELS = {
+    anillos: 'Anillo', aretes: 'Aretes', dijes: 'Dije',
+    pulseras: 'Pulsera', cadenas: 'Cadena', sets: 'Set'
+};
+
+/* ========== TABS ========== */
+document.querySelectorAll('.tab').forEach(tab => {
+    tab.addEventListener('click', () => {
+        document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+        tab.classList.add('active');
+        currentType = tab.dataset.type;
+        render();
+    });
+});
+
+/* ========== RENDER ========== */
+function render() {
+    const products = window.Inventory.getAll(currentType);
+    const tbody = document.getElementById('tbody');
+    const stats = document.getElementById('stats');
+
+    const visibleCount = products.filter(p => p.visible !== false).length;
+    const availableCount = products.filter(p => p.available !== false).length;
+    stats.innerHTML = `<strong>${products.length}</strong> productos · <strong>${visibleCount}</strong> visibles · <strong>${availableCount}</strong> disponibles`;
+
+    if (products.length === 0) {
+        tbody.innerHTML = `<tr><td colspan="6"><div class="empty"><i class="fas fa-box-open"></i><p>No hay productos. Agrega el primero.</p></div></td></tr>`;
+        return;
+    }
+
+    tbody.innerHTML = products.map(p => {
+        const img = p.image
+            ? `<img src="${esc(p.image)}" class="thumb" alt="">`
+            : `<div class="thumb-placeholder"><i class="fas fa-gem"></i></div>`;
+        const isHidden = p.visible === false;
+        return `
+            <tr class="${isHidden ? 'hidden-row' : ''}">
+                <td data-label="Imagen">${img}</td>
+                <td data-label="Producto">
+                    <div class="cell-name">${esc(p.name)}</div>
+                    <div class="cell-desc">${esc(p.description || '')}</div>
+                </td>
+                <td data-label="Categoría"><span class="chip">${esc(CATEGORY_LABELS[p.category] || p.category)}</span></td>
+                <td data-label="Disponible">
+                    <label class="switch-wrap">
+                        <span class="switch">
+                            <input type="checkbox" ${p.available !== false ? 'checked' : ''} onchange="toggleField('${esc(p.id)}','available',this.checked)">
+                            <span class="slider"></span>
+                        </span>
+                    </label>
+                </td>
+                <td data-label="Visible">
+                    <label class="switch-wrap">
+                        <span class="switch">
+                            <input type="checkbox" ${p.visible !== false ? 'checked' : ''} onchange="toggleField('${esc(p.id)}','visible',this.checked)">
+                            <span class="slider"></span>
+                        </span>
+                    </label>
+                </td>
+                <td data-label="Acciones">
+                    <div class="row-actions">
+                        <button class="btn btn-ghost btn-sm" onclick="editProduct('${esc(p.id)}')"><i class="fas fa-pen"></i></button>
+                        <button class="btn btn-danger btn-sm" onclick="deleteProduct('${esc(p.id)}')"><i class="fas fa-trash"></i></button>
+                    </div>
+                </td>
+            </tr>
+        `;
+    }).join('');
+}
+
+function esc(s) {
+    if (s === null || s === undefined) return '';
+    return String(s).replace(/[&<>"']/g, c => ({
+        '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;'
+    }[c]));
+}
+
+/* ========== INVENTORY ACTIONS ========== */
+window.toggleField = function(id, field, value) {
+    window.Inventory.update(currentType, id, { [field]: value });
+    render();
+};
+
+window.editProduct = function(id) {
+    const p = window.Inventory.getAll(currentType).find(x => x.id === id);
+    if (!p) return;
+    editingId = id;
+    imageData = p.image || '';
+    document.getElementById('modalTitle').textContent = 'Editar producto';
+    document.getElementById('fId').value = p.id;
+    document.getElementById('fName').value = p.name || '';
+    document.getElementById('fCategory').value = p.category || '';
+    document.getElementById('fMaterial').value = p.material || '';
+    document.getElementById('fDesc').value = p.description || '';
+    document.getElementById('fPreview').innerHTML = p.image ? `<img src="${esc(p.image)}">` : '';
+    openModal();
+};
+
+window.deleteProduct = function(id) {
+    const p = window.Inventory.getAll(currentType).find(x => x.id === id);
+    if (!p) return;
+    if (!confirm(`¿Eliminar "${p.name}"? Esta acción no se puede deshacer.`)) return;
+    window.Inventory.remove(currentType, id);
+    render();
+};
+
+/* ========== MODAL ========== */
+const modal = document.getElementById('productModal');
+function openModal() { modal.classList.add('active'); }
+function closeModal() {
+    modal.classList.remove('active');
+    document.getElementById('productForm').reset();
+    document.getElementById('fPreview').innerHTML = '';
+    editingId = null;
+    imageData = '';
+}
+
+document.getElementById('addBtn').addEventListener('click', () => {
+    editingId = null;
+    imageData = '';
+    document.getElementById('modalTitle').textContent = 'Agregar producto';
+    document.getElementById('productForm').reset();
+    document.getElementById('fPreview').innerHTML = '';
+    const defaultMaterial = currentType === 'oro' ? 'oro-esmeralda' : 'plata-esmeralda';
+    document.getElementById('fMaterial').value = defaultMaterial;
+    openModal();
+});
+document.getElementById('modalClose').addEventListener('click', closeModal);
+document.getElementById('cancelBtn').addEventListener('click', closeModal);
+modal.addEventListener('click', (e) => { if (e.target === modal) closeModal(); });
+
+document.getElementById('fImage').addEventListener('change', (e) => {
+    const file = e.target.files[0];
+    if (!file) return;
+    const reader = new FileReader();
+    reader.onload = (ev) => {
+        imageData = ev.target.result;
+        document.getElementById('fPreview').innerHTML = `<img src="${imageData}">`;
+    };
+    reader.readAsDataURL(file);
+});
+
+document.getElementById('productForm').addEventListener('submit', (e) => {
+    e.preventDefault();
+    const data = {
+        name: document.getElementById('fName').value.trim(),
+        category: document.getElementById('fCategory').value,
+        material: document.getElementById('fMaterial').value,
+        description: document.getElementById('fDesc').value.trim(),
+        image: imageData
+    };
+    if (!data.name || !data.category || !data.material) return;
+
+    if (editingId) {
+        window.Inventory.update(currentType, editingId, data);
+    } else {
+        window.Inventory.add(currentType, data);
+    }
+    closeModal();
+    render();
+});
+
+/* ========== RESET ========== */
+document.getElementById('resetBtn').addEventListener('click', () => {
+    if (!confirm(`¿Restablecer todos los productos de ${currentType} a los valores por defecto? Se perderán los cambios hechos aquí.`)) return;
+    window.Inventory.resetDefaults(currentType);
+    render();
+});
+</script>
+
+</body>
+</html>
