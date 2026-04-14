@@ -123,7 +123,70 @@ document.addEventListener('DOMContentLoaded', () => {
     if (document.getElementById('featuredGrid')) {
         initFeaturedSection();
     }
+    initLightbox();
 });
+
+/* ========== LIGHTBOX (zoom on click) ========== */
+function initLightbox() {
+    // Inject styles once
+    if (!document.getElementById('lightbox-styles')) {
+        const style = document.createElement('style');
+        style.id = 'lightbox-styles';
+        style.textContent = `
+            .product-img img, .exclusive-img img { cursor: zoom-in; }
+            .lightbox { position: fixed; inset: 0; background: rgba(0,0,0,0.92); z-index: 10000; display: none; align-items: center; justify-content: center; padding: 40px; animation: lbFade 0.25s ease; }
+            .lightbox.active { display: flex; }
+            .lightbox img { max-width: 90vw; max-height: 90vh; object-fit: contain; border-radius: 8px; box-shadow: 0 20px 60px rgba(0,0,0,0.5); animation: lbZoom 0.3s ease; }
+            .lightbox-close { position: absolute; top: 24px; right: 28px; width: 48px; height: 48px; background: rgba(255,255,255,0.1); border: 2px solid rgba(255,255,255,0.4); color: #fff; font-size: 1.4rem; border-radius: 50%; cursor: pointer; display: flex; align-items: center; justify-content: center; transition: all 0.2s; }
+            .lightbox-close:hover { background: rgba(255,255,255,0.2); border-color: #fff; transform: rotate(90deg); }
+            .lightbox-caption { position: absolute; bottom: 28px; left: 50%; transform: translateX(-50%); color: #fff; font-family: 'Playfair Display', Georgia, serif; font-size: 1.15rem; text-align: center; padding: 10px 24px; background: rgba(0,0,0,0.5); border-radius: 50px; max-width: 80vw; }
+            @keyframes lbFade { from { opacity: 0; } to { opacity: 1; } }
+            @keyframes lbZoom { from { opacity: 0; transform: scale(0.92); } to { opacity: 1; transform: scale(1); } }
+            body.lightbox-open { overflow: hidden; }
+        `;
+        document.head.appendChild(style);
+    }
+    // Inject overlay once
+    if (!document.getElementById('lightboxEl')) {
+        const el = document.createElement('div');
+        el.id = 'lightboxEl';
+        el.className = 'lightbox';
+        el.innerHTML = `
+            <button class="lightbox-close" aria-label="Cerrar"><i class="fas fa-times"></i></button>
+            <img src="" alt="">
+            <div class="lightbox-caption"></div>
+        `;
+        document.body.appendChild(el);
+
+        const close = () => {
+            el.classList.remove('active');
+            document.body.classList.remove('lightbox-open');
+        };
+        el.addEventListener('click', (e) => { if (e.target === el) close(); });
+        el.querySelector('.lightbox-close').addEventListener('click', close);
+        document.addEventListener('keydown', (e) => {
+            if (e.key === 'Escape' && el.classList.contains('active')) close();
+        });
+    }
+
+    // Event delegation for product image clicks
+    document.addEventListener('click', (e) => {
+        const img = e.target.closest('.product-img img, .exclusive-img img');
+        if (!img) return;
+        const card = img.closest('.product-card, .exclusive-card');
+        const name = card?.querySelector('h4')?.textContent || '';
+        openLightbox(img.src, name);
+    });
+}
+
+function openLightbox(src, caption) {
+    const el = document.getElementById('lightboxEl');
+    if (!el) return;
+    el.querySelector('img').src = src;
+    el.querySelector('.lightbox-caption').textContent = caption;
+    el.classList.add('active');
+    document.body.classList.add('lightbox-open');
+}
 
 /* ========== CATEGORY PAGE ========== */
 function initCategoryPage() {
