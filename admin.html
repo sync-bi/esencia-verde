@@ -240,11 +240,11 @@ document.getElementById('logoutBtn').addEventListener('click', () => {
 });
 
 /* ========== ADMIN STATE ========== */
-let currentType = 'oro';
+let adminType = 'oro';
 let editingId = null;
 let imageData = '';
 
-const CATEGORY_LABELS = {
+const ADMIN_CATEGORY_LABELS = {
     anillos: 'Anillo', aretes: 'Aretes', dijes: 'Dije',
     pulseras: 'Pulsera', cadenas: 'Cadena', sets: 'Set'
 };
@@ -254,14 +254,14 @@ document.querySelectorAll('.tab').forEach(tab => {
     tab.addEventListener('click', () => {
         document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
         tab.classList.add('active');
-        currentType = tab.dataset.type;
+        adminType = tab.dataset.type;
         render();
     });
 });
 
 /* ========== RENDER ========== */
 function render() {
-    const products = window.Inventory.getAll(currentType);
+    const products = window.Inventory.getAll(adminType);
     const tbody = document.getElementById('tbody');
     const stats = document.getElementById('stats');
 
@@ -286,7 +286,7 @@ function render() {
                     <div class="cell-name">${esc(p.name)}</div>
                     <div class="cell-desc">${esc(p.description || '')}</div>
                 </td>
-                <td data-label="Categoría"><span class="chip">${esc(CATEGORY_LABELS[p.category] || p.category)}</span></td>
+                <td data-label="Categoría"><span class="chip">${esc(ADMIN_CATEGORY_LABELS[p.category] || p.category)}</span></td>
                 <td data-label="Disponible">
                     <label class="switch-wrap">
                         <span class="switch">
@@ -323,12 +323,12 @@ function esc(s) {
 
 /* ========== INVENTORY ACTIONS ========== */
 window.toggleField = function(id, field, value) {
-    window.Inventory.update(currentType, id, { [field]: value });
+    window.Inventory.update(adminType, id, { [field]: value });
     render();
 };
 
 window.editProduct = function(id) {
-    const p = window.Inventory.getAll(currentType).find(x => x.id === id);
+    const p = window.Inventory.getAll(adminType).find(x => x.id === id);
     if (!p) return;
     editingId = id;
     imageData = p.image || '';
@@ -343,10 +343,10 @@ window.editProduct = function(id) {
 };
 
 window.deleteProduct = function(id) {
-    const p = window.Inventory.getAll(currentType).find(x => x.id === id);
+    const p = window.Inventory.getAll(adminType).find(x => x.id === id);
     if (!p) return;
     if (!confirm(`¿Eliminar "${p.name}"? Esta acción no se puede deshacer.`)) return;
-    window.Inventory.remove(currentType, id);
+    window.Inventory.remove(adminType, id);
     render();
 };
 
@@ -367,7 +367,7 @@ document.getElementById('addBtn').addEventListener('click', () => {
     document.getElementById('modalTitle').textContent = 'Agregar producto';
     document.getElementById('productForm').reset();
     document.getElementById('fPreview').innerHTML = '';
-    const defaultMaterial = currentType === 'oro' ? 'oro-esmeralda' : 'plata-esmeralda';
+    const defaultMaterial = adminType === 'oro' ? 'oro-esmeralda' : 'plata-esmeralda';
     document.getElementById('fMaterial').value = defaultMaterial;
     openModal();
 });
@@ -398,9 +398,9 @@ document.getElementById('productForm').addEventListener('submit', (e) => {
     if (!data.name || !data.category || !data.material) return;
 
     if (editingId) {
-        window.Inventory.update(currentType, editingId, data);
+        window.Inventory.update(adminType, editingId, data);
     } else {
-        window.Inventory.add(currentType, data);
+        window.Inventory.add(adminType, data);
     }
     closeModal();
     render();
@@ -408,8 +408,8 @@ document.getElementById('productForm').addEventListener('submit', (e) => {
 
 /* ========== RESET ========== */
 document.getElementById('resetBtn').addEventListener('click', () => {
-    if (!confirm(`¿Restablecer todos los productos de ${currentType} a los valores por defecto? Se perderán los cambios hechos aquí.`)) return;
-    window.Inventory.resetDefaults(currentType);
+    if (!confirm(`¿Restablecer todos los productos de ${adminType} a los valores por defecto? Se perderán los cambios hechos aquí.`)) return;
+    window.Inventory.resetDefaults(adminType);
     render();
 });
 </script>
