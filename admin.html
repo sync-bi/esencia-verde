@@ -100,8 +100,13 @@ tr.hidden-row td { opacity: 0.5; background: #faf8f0; }
 .file-upload i { font-size: 1.8rem; color: var(--gray-light); margin-bottom: 6px; }
 .file-upload p { font-size: 0.85rem; color: var(--gray); }
 .file-upload input { position: absolute; inset: 0; opacity: 0; cursor: pointer; }
-.file-preview { margin-top: 12px; }
-.file-preview img { max-width: 120px; border-radius: 8px; border: 2px solid var(--gray-light); }
+.file-preview { margin-top: 12px; display: flex; gap: 10px; flex-wrap: wrap; }
+.file-preview .thumb-wrap { position: relative; }
+.file-preview img { width: 120px; height: 120px; object-fit: cover; border-radius: 8px; border: 2px solid var(--gray-light); display: block; }
+.file-preview .thumb-wrap .cover-tag { position: absolute; top: 4px; left: 4px; background: var(--emerald); color: #fff; font-size: 0.65rem; padding: 2px 7px; border-radius: 50px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.3px; }
+.file-preview .thumb-wrap .remove-thumb { position: absolute; top: 4px; right: 4px; width: 24px; height: 24px; border-radius: 50%; background: rgba(0,0,0,0.7); color: #fff; font-size: 0.75rem; display: flex; align-items: center; justify-content: center; cursor: pointer; border: none; }
+.file-preview .thumb-wrap .remove-thumb:hover { background: var(--danger); }
+.file-hint { font-size: 0.75rem; color: var(--gray); margin-top: 6px; }
 .modal-actions { display: flex; gap: 10px; justify-content: flex-end; margin-top: 24px; }
 
 /* LOGIN */
@@ -246,13 +251,14 @@ tr.hidden-row td { opacity: 0.5; background: #faf8f0; }
                 <textarea id="fDesc" rows="3"></textarea>
             </div>
             <div class="form-group">
-                <label>Imagen</label>
+                <label>Imágenes (máximo 2)</label>
                 <div class="file-upload">
                     <i class="fas fa-cloud-upload-alt"></i>
-                    <p>Haz click o arrastra una imagen</p>
-                    <input type="file" id="fImage" accept="image/*">
+                    <p>Haz click o arrastra hasta 2 imágenes</p>
+                    <input type="file" id="fImage" accept="image/*" multiple>
                 </div>
                 <div class="file-preview" id="fPreview"></div>
+                <p class="file-hint">La primera imagen será la portada que se muestra en el catálogo.</p>
             </div>
             <div class="modal-actions">
                 <button type="button" class="btn btn-ghost" id="cancelBtn">Cancelar</button>
@@ -264,7 +270,7 @@ tr.hidden-row td { opacity: 0.5; background: #faf8f0; }
 
 <script type="module">
 import { auth } from './assets/js/firebase-setup.js';
-import { Inventory } from './assets/js/products.js';
+import { Inventory, compressImage } from './assets/js/products.js';
 import {
     signInWithEmailAndPassword, signOut, onAuthStateChanged
 } from "https://www.gstatic.com/firebasejs/10.14.1/firebase-auth.js";
@@ -307,8 +313,9 @@ document.getElementById('logoutBtn').addEventListener('click', async () => {
 /* ========== STATE ========== */
 let adminFilter = 'todos';
 let editingId = null;
-let selectedFile = null;
+let productImages = []; // data URLs (existing + newly compressed), max 2
 let productsCache = [];
+const MAX_IMAGES = 2;
 let listenerUnsub = null;
 
 const CAT_LABELS = {
@@ -433,14 +440,28 @@ function openModal() { modal.classList.add('active'); }
 function closeModal() {
     modal.classList.remove('active');
     document.getElementById('productForm').reset();
-    document.getElementById('fPreview').innerHTML = '';
+    productImages = [];
+    renderPreview();
     editingId = null;
-    selectedFile = null;
+}
+
+function renderPreview() {
+    const container = document.getElementById('fPreview');
+    if (!productImages.length) {
+        container.innerHTML = '';
+        return;
+    }
+    container.innerHTML = productImages.map((src, i) => `
+        <div class="thumb-wrap" data-idx="${i}">
+            <img src="${esc(src)}">
+            ${i === 0 ? '<span class="cover-tag">Portada</span>' : ''}
+            <button type="button" class="remove-thumb" data-remove="${i}" aria-label="Quitar"><i class="fas fa-times"></i></button>
+        </div>
+    `).join('');
 }
 
 function openEditModal(p) {
     editingId = p.id;
-    selectedFile = null;
     document.getElementById('modalTitle').textContent = 'Editar producto';
     document.getElementById('fId').value = p.id;
     document.getElementById('fName').value = p.name || '';
@@ -449,16 +470,27 @@ function openEditModal(p) {
     document.getElementById('fMaterial').value = p.material || '';
     document.getElementById('fDesc').value = p.description || '';
     document.getElementById('fFeatured').checked = p.featured === true;
-    document.getElementById('fPreview').innerHTML = p.imageUrl ? `<img src="${esc(p.imageUrl)}">` : '';
+    productImages = Array.isArray(p.imageUrls) && p.imageUrls.length
+        ? p.imageUrls.filter(Boolean).slice(0, MAX_IMAGES)
+        : (p.imageUrl ? [p.imageUrl] : []);
+    renderPreview();
     openModal();
 }
 
+document.getElementById('fPreview').addEventListener('click', (e) => {
+    const btn = e.target.closest('[data-remove]');
+    if (!btn) return;
+    const idx = Number(btn.dataset.remove);
+    productImages.splice(idx, 1);
+    renderPreview();
+});
+
 document.getElementById('addBtn').addEventListener('click', () => {
     editingId = null;
-    selectedFile = null;
+    productImages = [];
     document.getElementById('modalTitle').textContent = 'Agregar producto';
     document.getElementById('productForm').reset();
-    document.getElementById('fPreview').innerHTML = '';
+    renderPreview();
     document.getElementById('fType').value = adminFilter === 'plata' ? 'plata' : 'oro';
     document.getElementById('fMaterial').value = adminFilter === 'plata' ? 'plata-esmeralda' : 'oro-esmeralda';
     openModal();
@@ -468,15 +500,28 @@ document.getElementById('modalClose').addEventListener('click', closeModal);
 document.getElementById('cancelBtn').addEventListener('click', closeModal);
 modal.addEventListener('click', (e) => { if (e.target === modal) closeModal(); });
 
-document.getElementById('fImage').addEventListener('change', (e) => {
-    const file = e.target.files[0];
-    if (!file) return;
-    selectedFile = file;
-    const reader = new FileReader();
-    reader.onload = (ev) => {
-        document.getElementById('fPreview').innerHTML = `<img src="${ev.target.result}">`;
-    };
-    reader.readAsDataURL(file);
+document.getElementById('fImage').addEventListener('change', async (e) => {
+    const files = Array.from(e.target.files || []);
+    e.target.value = '';
+    if (!files.length) return;
+    const remaining = MAX_IMAGES - productImages.length;
+    if (remaining <= 0) {
+        alert(`Máximo ${MAX_IMAGES} imágenes por producto. Quita una antes de añadir otra.`);
+        return;
+    }
+    const toProcess = files.slice(0, remaining);
+    if (files.length > remaining) {
+        alert(`Solo se agregaron ${remaining} imágenes (límite: ${MAX_IMAGES}).`);
+    }
+    try {
+        for (const file of toProcess) {
+            const dataUrl = await compressImage(file);
+            productImages.push(dataUrl);
+        }
+        renderPreview();
+    } catch (err) {
+        alert('Error al procesar imagen: ' + err.message);
+    }
 });
 
 document.getElementById('productForm').addEventListener('submit', async (e) => {
@@ -492,7 +537,8 @@ document.getElementById('productForm').addEventListener('submit', async (e) => {
         category: document.getElementById('fCategory').value,
         material: document.getElementById('fMaterial').value,
         description: document.getElementById('fDesc').value.trim(),
-        featured: document.getElementById('fFeatured').checked
+        featured: document.getElementById('fFeatured').checked,
+        imageUrls: productImages.slice(0, MAX_IMAGES)
     };
     if (!data.name || !data.category || !data.material || !data.type) {
         submitBtn.disabled = false;
@@ -501,9 +547,9 @@ document.getElementById('productForm').addEventListener('submit', async (e) => {
     }
     try {
         if (editingId) {
-            await Inventory.update(editingId, data, selectedFile);
+            await Inventory.update(editingId, data);
         } else {
-            await Inventory.add(data, selectedFile);
+            await Inventory.add(data);
         }
         closeModal();
     } catch (err) {

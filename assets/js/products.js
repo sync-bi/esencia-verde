@@ -55,18 +55,18 @@ export const Inventory = {
         return snap.docs.map(d => ({ id: d.id, ...d.data() }));
     },
 
-    async add(data, file) {
-        let imageUrl = data.imageUrl || '';
-        if (file) {
-            imageUrl = await compressImage(file);
-        }
+    async add(data) {
+        const imageUrls = Array.isArray(data.imageUrls)
+            ? data.imageUrls.filter(Boolean).slice(0, 2)
+            : (data.imageUrl ? [data.imageUrl] : []);
         const payload = {
             name: data.name || '',
             type: data.type || 'oro',
             category: data.category || '',
             material: data.material || '',
             description: data.description || '',
-            imageUrl,
+            imageUrls,
+            imageUrl: imageUrls[0] || '',
             available: data.available !== false,
             visible: data.visible !== false,
             featured: data.featured === true,
@@ -75,10 +75,11 @@ export const Inventory = {
         return await addDoc(productsCol, payload);
     },
 
-    async update(id, patch, file) {
+    async update(id, patch) {
         const update = { ...patch };
-        if (file) {
-            update.imageUrl = await compressImage(file);
+        if (Array.isArray(update.imageUrls)) {
+            update.imageUrls = update.imageUrls.filter(Boolean).slice(0, 2);
+            update.imageUrl = update.imageUrls[0] || '';
         }
         await updateDoc(doc(db, 'products', id), update);
     },
@@ -92,7 +93,7 @@ export const Inventory = {
 window.Inventory = Inventory;
 
 /* ========== IMAGE COMPRESSION (client-side, no Storage needed) ========== */
-function compressImage(file, maxWidth = 1200, quality = 0.85) {
+export function compressImage(file, maxWidth = 1000, quality = 0.8) {
     return new Promise((resolve, reject) => {
         const reader = new FileReader();
         reader.onload = (e) => {
@@ -126,8 +127,19 @@ document.addEventListener('DOMContentLoaded', () => {
     initLightbox();
 });
 
+/* ========== IMAGE HELPERS ========== */
+function getImages(product) {
+    if (Array.isArray(product.imageUrls) && product.imageUrls.length) {
+        return product.imageUrls.filter(Boolean);
+    }
+    return product.imageUrl ? [product.imageUrl] : [];
+}
+
 /* ========== LIGHTBOX WITH ZOOM & PAN ========== */
-const lbState = { scale: 1, tx: 0, ty: 0, dragging: false, lastX: 0, lastY: 0, pinchDist: 0 };
+const lbState = {
+    scale: 1, tx: 0, ty: 0, dragging: false, lastX: 0, lastY: 0, pinchDist: 0,
+    gallery: [], index: 0, caption: ''
+};
 
 function initLightbox() {
     if (!document.getElementById('lightbox-styles')) {
@@ -148,6 +160,14 @@ function initLightbox() {
             .lightbox-btn { width: 44px; height: 44px; background: rgba(255,255,255,0.1); border: 2px solid rgba(255,255,255,0.4); color: #fff; font-size: 1rem; border-radius: 50%; cursor: pointer; display: flex; align-items: center; justify-content: center; transition: all 0.2s; }
             .lightbox-btn:hover { background: rgba(255,255,255,0.2); border-color: #fff; }
             .lightbox-hint { position: absolute; top: 20px; left: 50%; transform: translateX(-50%); color: rgba(255,255,255,0.7); font-size: 0.82rem; font-family: 'Lato', sans-serif; background: rgba(0,0,0,0.4); padding: 6px 14px; border-radius: 50px; z-index: 10; pointer-events: none; }
+            .lightbox-nav { position: absolute; top: 50%; transform: translateY(-50%); width: 54px; height: 54px; background: rgba(255,255,255,0.12); border: 2px solid rgba(255,255,255,0.4); color: #fff; font-size: 1.2rem; border-radius: 50%; cursor: pointer; display: none; align-items: center; justify-content: center; transition: all 0.2s; z-index: 10; }
+            .lightbox-nav:hover { background: rgba(255,255,255,0.22); border-color: #fff; }
+            .lightbox-nav.prev { left: 24px; }
+            .lightbox-nav.next { right: 24px; }
+            .lightbox.has-gallery .lightbox-nav { display: flex; }
+            .lightbox-counter { position: absolute; top: 20px; left: 24px; color: rgba(255,255,255,0.85); font-size: 0.85rem; font-family: 'Lato', sans-serif; background: rgba(0,0,0,0.4); padding: 6px 14px; border-radius: 50px; z-index: 10; display: none; }
+            .lightbox.has-gallery .lightbox-counter { display: block; }
+            .multi-img-badge { position: absolute; top: 12px; right: 12px; background: rgba(0,0,0,0.65); color: #fff; font-size: 0.72rem; padding: 4px 10px; border-radius: 50px; font-family: 'Lato', sans-serif; display: flex; align-items: center; gap: 5px; z-index: 2; }
             @keyframes lbFade { from { opacity: 0; } to { opacity: 1; } }
             body.lightbox-open { overflow: hidden; }
             @media (max-width: 600px) {
@@ -163,8 +183,11 @@ function initLightbox() {
         el.className = 'lightbox';
         el.innerHTML = `
             <button class="lightbox-close" aria-label="Cerrar"><i class="fas fa-times"></i></button>
+            <div class="lightbox-counter">1 / 1</div>
             <div class="lightbox-hint">Rueda del mouse o doble clic para acercar · Arrastra para moverte</div>
+            <button class="lightbox-nav prev" aria-label="Anterior"><i class="fas fa-chevron-left"></i></button>
             <div class="lightbox-stage"><img src="" alt=""></div>
+            <button class="lightbox-nav next" aria-label="Siguiente"><i class="fas fa-chevron-right"></i></button>
             <div class="lightbox-caption"></div>
             <div class="lightbox-controls">
                 <button class="lightbox-btn" data-zoom="out" aria-label="Alejar"><i class="fas fa-minus"></i></button>
@@ -192,6 +215,17 @@ function initLightbox() {
             if (e.key === '+' || e.key === '=') zoomBy(img, 1.3);
             if (e.key === '-') zoomBy(img, 1 / 1.3);
             if (e.key === '0') resetZoom(img);
+            if (e.key === 'ArrowLeft') navigateGallery(-1);
+            if (e.key === 'ArrowRight') navigateGallery(1);
+        });
+
+        el.querySelector('.lightbox-nav.prev').addEventListener('click', (e) => {
+            e.stopPropagation();
+            navigateGallery(-1);
+        });
+        el.querySelector('.lightbox-nav.next').addEventListener('click', (e) => {
+            e.stopPropagation();
+            navigateGallery(1);
         });
 
         // Wheel zoom
@@ -278,8 +312,29 @@ function initLightbox() {
         if (!img) return;
         const card = img.closest('.product-card, .exclusive-card');
         const name = card?.querySelector('h4')?.textContent || '';
-        openLightbox(img.src, name);
+        const pid = card?.dataset.pid;
+        const product = productsCache.find(p => p.id === pid);
+        const images = product ? getImages(product) : [img.src];
+        openLightbox(images, 0, name);
     });
+}
+
+function navigateGallery(delta) {
+    if (lbState.gallery.length < 2) return;
+    const len = lbState.gallery.length;
+    lbState.index = (lbState.index + delta + len) % len;
+    const el = document.getElementById('lightboxEl');
+    const img = el.querySelector('img');
+    img.src = lbState.gallery[lbState.index];
+    resetZoom(img);
+    updateGalleryCounter();
+}
+
+function updateGalleryCounter() {
+    const el = document.getElementById('lightboxEl');
+    if (!el) return;
+    const counter = el.querySelector('.lightbox-counter');
+    counter.textContent = `${lbState.index + 1} / ${lbState.gallery.length}`;
 }
 
 function touchDistance(touches) {
@@ -317,12 +372,19 @@ function applyTransform(img) {
     img.classList.toggle('zoomed', lbState.scale > 1);
 }
 
-function openLightbox(src, caption) {
+function openLightbox(images, startIndex, caption) {
     const el = document.getElementById('lightboxEl');
     if (!el) return;
+    const gallery = Array.isArray(images) ? images.filter(Boolean) : [images].filter(Boolean);
+    if (!gallery.length) return;
+    lbState.gallery = gallery;
+    lbState.index = Math.max(0, Math.min(startIndex || 0, gallery.length - 1));
+    lbState.caption = caption || '';
     const img = el.querySelector('img');
-    img.src = src;
-    el.querySelector('.lightbox-caption').textContent = caption;
+    img.src = gallery[lbState.index];
+    el.querySelector('.lightbox-caption').textContent = caption || '';
+    el.classList.toggle('has-gallery', gallery.length > 1);
+    updateGalleryCounter();
     el.classList.add('active');
     document.body.classList.add('lightbox-open');
     resetZoom(img);
@@ -380,10 +442,14 @@ function renderCategoryProducts() {
     }
 
     grid.innerHTML = filtered.map(product => {
-        const imgSrc = product.imageUrl || '';
+        const images = getImages(product);
+        const imgSrc = images[0] || '';
         const imgHtml = imgSrc
             ? `<img src="${escapeHtml(imgSrc)}" alt="${escapeHtml(product.name)}" loading="lazy">`
             : `<div style="width:100%;height:100%;display:flex;align-items:center;justify-content:center;background:linear-gradient(135deg,#f5f5e8,#e8e8e0);"><i class="fas fa-gem" style="font-size:3rem;color:#ccc;"></i></div>`;
+        const multiBadge = images.length > 1
+            ? `<span class="multi-img-badge"><i class="fas fa-images"></i> ${images.length}</span>`
+            : '';
 
         const isAvailable = product.available !== false;
         const soldOutOverlay = isAvailable ? '' : `<div class="sold-out-overlay">Agotado</div>`;
@@ -396,10 +462,11 @@ function renderCategoryProducts() {
                 </button>`;
 
         return `
-            <div class="product-card${isAvailable ? '' : ' sold-out'}" data-category="${product.category}">
+            <div class="product-card${isAvailable ? '' : ' sold-out'}" data-category="${product.category}" data-pid="${escapeHtml(product.id)}">
                 <div class="product-img">
                     ${imgHtml}
                     <span class="product-badge">${escapeHtml(CATEGORY_LABELS[product.category] || product.category)}</span>
+                    ${multiBadge}
                     ${soldOutOverlay}
                 </div>
                 <div class="product-info">
@@ -455,14 +522,18 @@ function renderFeatured() {
 
     grid.innerHTML = featured.map(p => {
         const isAvailable = p.available !== false;
-        const imgSrc = p.imageUrl || '';
+        const images = getImages(p);
+        const imgSrc = images[0] || '';
         const imgHtml = imgSrc
             ? `<img src="${escapeHtml(imgSrc)}" alt="${escapeHtml(p.name)}" loading="lazy">`
             : `<div style="width:100%;height:100%;display:flex;align-items:center;justify-content:center;background:linear-gradient(135deg,#f5f5e8,#e8e8e0);"><i class="fas fa-gem" style="font-size:3rem;color:#ccc;"></i></div>`;
+        const multiBadge = images.length > 1
+            ? `<span class="multi-img-badge"><i class="fas fa-images"></i> ${images.length}</span>`
+            : '';
         const soldOut = isAvailable ? '' : `<div class="sold-out-overlay">Agotado</div>`;
         return `
-            <div class="exclusive-card${isAvailable ? '' : ' sold-out'}">
-                <div class="exclusive-img">${imgHtml}${soldOut}</div>
+            <div class="exclusive-card${isAvailable ? '' : ' sold-out'}" data-pid="${escapeHtml(p.id)}">
+                <div class="exclusive-img">${imgHtml}${multiBadge}${soldOut}</div>
                 <div class="exclusive-info">
                     <h4>${escapeHtml(p.name)}</h4>
                     <p>${escapeHtml(p.description || '')}</p>
