@@ -167,7 +167,12 @@ function initLightbox() {
             .lightbox.has-gallery .lightbox-nav { display: flex; }
             .lightbox-counter { position: absolute; top: 20px; left: 24px; color: rgba(255,255,255,0.85); font-size: 0.85rem; font-family: 'Lato', sans-serif; background: rgba(0,0,0,0.4); padding: 6px 14px; border-radius: 50px; z-index: 10; display: none; }
             .lightbox.has-gallery .lightbox-counter { display: block; }
-            .multi-img-badge { position: absolute; top: 12px; right: 12px; background: rgba(0,0,0,0.65); color: #fff; font-size: 0.72rem; padding: 4px 10px; border-radius: 50px; font-family: 'Lato', sans-serif; display: flex; align-items: center; gap: 5px; z-index: 2; }
+            .product-thumbs { display: flex; gap: 8px; padding: 10px 14px 0; }
+            .product-thumb { width: 54px; height: 54px; padding: 0; border: 2px solid #e0e0d8; border-radius: 6px; background: #fff; cursor: pointer; overflow: hidden; transition: border-color 0.2s, transform 0.2s; }
+            .product-thumb img { width: 100%; height: 100%; object-fit: cover; display: block; }
+            .product-thumb:hover { transform: translateY(-2px); }
+            .product-thumb.active { border-color: #0b6e4f; box-shadow: 0 0 0 2px rgba(11,110,79,0.15); }
+            @media (max-width: 600px) { .product-thumb { width: 46px; height: 46px; } }
             @keyframes lbFade { from { opacity: 0; } to { opacity: 1; } }
             body.lightbox-open { overflow: hidden; }
             @media (max-width: 600px) {
@@ -306,7 +311,27 @@ function initLightbox() {
         });
     }
 
-    // Event delegation for product image clicks
+    // Thumbnail click: swap main image within the card
+    document.addEventListener('click', (e) => {
+        const thumb = e.target.closest('.product-thumb');
+        if (!thumb) return;
+        e.stopPropagation();
+        const card = thumb.closest('.product-card, .exclusive-card');
+        if (!card) return;
+        const idx = Number(thumb.dataset.thumbIdx);
+        const pid = card.dataset.pid;
+        const product = productsCache.find(p => p.id === pid);
+        const images = product ? getImages(product) : [];
+        if (!images[idx]) return;
+        const mainImg = card.querySelector('.product-img img, .exclusive-img img');
+        if (mainImg) mainImg.src = images[idx];
+        card.dataset.current = String(idx);
+        card.querySelectorAll('.product-thumb').forEach(t => {
+            t.classList.toggle('active', Number(t.dataset.thumbIdx) === idx);
+        });
+    });
+
+    // Event delegation for product image clicks → lightbox
     document.addEventListener('click', (e) => {
         const img = e.target.closest('.product-img img, .exclusive-img img');
         if (!img) return;
@@ -315,7 +340,8 @@ function initLightbox() {
         const pid = card?.dataset.pid;
         const product = productsCache.find(p => p.id === pid);
         const images = product ? getImages(product) : [img.src];
-        openLightbox(images, 0, name);
+        const startIdx = Number(card?.dataset.current || 0);
+        openLightbox(images, startIdx, name);
     });
 }
 
@@ -447,8 +473,12 @@ function renderCategoryProducts() {
         const imgHtml = imgSrc
             ? `<img src="${escapeHtml(imgSrc)}" alt="${escapeHtml(product.name)}" loading="lazy">`
             : `<div style="width:100%;height:100%;display:flex;align-items:center;justify-content:center;background:linear-gradient(135deg,#f5f5e8,#e8e8e0);"><i class="fas fa-gem" style="font-size:3rem;color:#ccc;"></i></div>`;
-        const multiBadge = images.length > 1
-            ? `<span class="multi-img-badge"><i class="fas fa-images"></i> ${images.length}</span>`
+        const thumbsHtml = images.length > 1
+            ? `<div class="product-thumbs">${images.map((src, i) => `
+                    <button type="button" class="product-thumb${i === 0 ? ' active' : ''}" data-thumb-idx="${i}">
+                        <img src="${escapeHtml(src)}" alt="Vista ${i + 1}" loading="lazy">
+                    </button>
+                `).join('')}</div>`
             : '';
 
         const isAvailable = product.available !== false;
@@ -462,13 +492,13 @@ function renderCategoryProducts() {
                 </button>`;
 
         return `
-            <div class="product-card${isAvailable ? '' : ' sold-out'}" data-category="${product.category}" data-pid="${escapeHtml(product.id)}">
+            <div class="product-card${isAvailable ? '' : ' sold-out'}" data-category="${product.category}" data-pid="${escapeHtml(product.id)}" data-current="0">
                 <div class="product-img">
                     ${imgHtml}
                     <span class="product-badge">${escapeHtml(CATEGORY_LABELS[product.category] || product.category)}</span>
-                    ${multiBadge}
                     ${soldOutOverlay}
                 </div>
+                ${thumbsHtml}
                 <div class="product-info">
                     <div class="product-material">${escapeHtml(MATERIAL_LABELS[product.material] || product.material)}</div>
                     <h4>${escapeHtml(product.name)}</h4>
@@ -527,13 +557,18 @@ function renderFeatured() {
         const imgHtml = imgSrc
             ? `<img src="${escapeHtml(imgSrc)}" alt="${escapeHtml(p.name)}" loading="lazy">`
             : `<div style="width:100%;height:100%;display:flex;align-items:center;justify-content:center;background:linear-gradient(135deg,#f5f5e8,#e8e8e0);"><i class="fas fa-gem" style="font-size:3rem;color:#ccc;"></i></div>`;
-        const multiBadge = images.length > 1
-            ? `<span class="multi-img-badge"><i class="fas fa-images"></i> ${images.length}</span>`
+        const thumbsHtml = images.length > 1
+            ? `<div class="product-thumbs">${images.map((src, i) => `
+                    <button type="button" class="product-thumb${i === 0 ? ' active' : ''}" data-thumb-idx="${i}">
+                        <img src="${escapeHtml(src)}" alt="Vista ${i + 1}" loading="lazy">
+                    </button>
+                `).join('')}</div>`
             : '';
         const soldOut = isAvailable ? '' : `<div class="sold-out-overlay">Agotado</div>`;
         return `
-            <div class="exclusive-card${isAvailable ? '' : ' sold-out'}" data-pid="${escapeHtml(p.id)}">
-                <div class="exclusive-img">${imgHtml}${multiBadge}${soldOut}</div>
+            <div class="exclusive-card${isAvailable ? '' : ' sold-out'}" data-pid="${escapeHtml(p.id)}" data-current="0">
+                <div class="exclusive-img">${imgHtml}${soldOut}</div>
+                ${thumbsHtml}
                 <div class="exclusive-info">
                     <h4>${escapeHtml(p.name)}</h4>
                     <p>${escapeHtml(p.description || '')}</p>
