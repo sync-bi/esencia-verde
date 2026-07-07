@@ -3,7 +3,11 @@
    ======================================== */
 
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.14.1/firebase-app.js";
-import { getFirestore } from "https://www.gstatic.com/firebasejs/10.14.1/firebase-firestore.js";
+import {
+    initializeFirestore,
+    persistentLocalCache,
+    persistentMultipleTabManager
+} from "https://www.gstatic.com/firebasejs/10.14.1/firebase-firestore.js";
 import { getAuth } from "https://www.gstatic.com/firebasejs/10.14.1/firebase-auth.js";
 
 const firebaseConfig = {
@@ -16,5 +20,15 @@ const firebaseConfig = {
 };
 
 export const app = initializeApp(firebaseConfig);
-export const db = getFirestore(app);
+
+// Caché local persistente (IndexedDB): tras la primera carga, al navegar
+// entre páginas los productos y sus fotos se sirven al instante desde el
+// navegador y se sincronizan en segundo plano. Evita volver a descargar
+// todas las imágenes base64 en cada cambio de página.
+export const db = initializeFirestore(app, {
+    localCache: persistentLocalCache({
+        tabManager: persistentMultipleTabManager()
+    })
+});
+
 export const auth = getAuth(app);
