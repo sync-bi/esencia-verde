@@ -171,6 +171,7 @@ tr.hidden-row td { opacity: 0.5; background: #faf8f0; }
     <div class="toolbar">
         <div class="stats" id="stats"></div>
         <div class="actions">
+            <button class="btn btn-ghost" id="optimizeBtn" title="Genera miniaturas livianas para que la página cargue más rápido"><i class="fas fa-bolt"></i> Optimizar fotos</button>
             <button class="btn btn-primary" id="addBtn"><i class="fas fa-plus"></i> Agregar producto</button>
         </div>
     </div>
@@ -366,8 +367,9 @@ function render() {
     }
 
     tbody.innerHTML = filtered.map(p => {
-        const img = p.imageUrl
-            ? `<img src="${esc(p.imageUrl)}" class="thumb" alt="">`
+        const listThumb = p.thumbUrl || (Array.isArray(p.thumbUrls) && p.thumbUrls[0]) || p.imageUrl;
+        const img = listThumb
+            ? `<img src="${esc(listThumb)}" class="thumb" alt="">`
             : `<div class="thumb-placeholder"><i class="fas fa-gem"></i></div>`;
         const isHidden = p.visible === false;
         return `
@@ -460,7 +462,7 @@ function renderPreview() {
     `).join('');
 }
 
-function openEditModal(p) {
+async function openEditModal(p) {
     editingId = p.id;
     document.getElementById('modalTitle').textContent = 'Editar producto';
     document.getElementById('fId').value = p.id;
@@ -470,9 +472,14 @@ function openEditModal(p) {
     document.getElementById('fMaterial').value = p.material || '';
     document.getElementById('fDesc').value = p.description || '';
     document.getElementById('fFeatured').checked = p.featured === true;
-    productImages = Array.isArray(p.imageUrls) && p.imageUrls.length
-        ? p.imageUrls.filter(Boolean).slice(0, MAX_IMAGES)
-        : (p.imageUrl ? [p.imageUrl] : []);
+    // Load the full-resolution images (stored apart from the product doc).
+    let imgs = await Inventory.getFullImages(p.id);
+    if (!imgs.length) {
+        imgs = Array.isArray(p.imageUrls) && p.imageUrls.length
+            ? p.imageUrls.filter(Boolean)
+            : (p.imageUrl ? [p.imageUrl] : []);
+    }
+    productImages = imgs.slice(0, MAX_IMAGES);
     renderPreview();
     openModal();
 }
@@ -494,6 +501,24 @@ document.getElementById('addBtn').addEventListener('click', () => {
     document.getElementById('fType').value = adminFilter === 'plata' ? 'plata' : 'oro';
     document.getElementById('fMaterial').value = adminFilter === 'plata' ? 'plata-esmeralda' : 'oro-esmeralda';
     openModal();
+});
+
+document.getElementById('optimizeBtn').addEventListener('click', async (e) => {
+    const btn = e.currentTarget;
+    if (!confirm('Se generarán miniaturas livianas para todos los productos, para acelerar la carga de la página. Esto puede tardar unos segundos. ¿Continuar?')) return;
+    const original = btn.innerHTML;
+    btn.disabled = true;
+    try {
+        const res = await Inventory.migrateToThumbnails((done, total) => {
+            btn.innerHTML = `<i class="fas fa-spinner fa-spin"></i> Optimizando ${done}/${total}`;
+        });
+        alert(`Listo. Se optimizaron ${res.migrated} de ${res.total} productos.`);
+    } catch (err) {
+        alert('Error al optimizar: ' + err.message);
+    } finally {
+        btn.disabled = false;
+        btn.innerHTML = original;
+    }
 });
 
 document.getElementById('modalClose').addEventListener('click', closeModal);

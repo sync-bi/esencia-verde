@@ -9,7 +9,8 @@
 import { db } from './firebase-setup.js';
 import {
     collection, doc, query, orderBy, onSnapshot,
-    addDoc, updateDoc, deleteDoc, getDocs, serverTimestamp
+    addDoc, updateDoc, deleteDoc, getDoc, getDocs, setDoc,
+    deleteField, serverTimestamp
 } from "https://www.gstatic.com/firebasejs/10.14.1/firebase-firestore.js";
 
 /* ========== LABELS ========== */
@@ -34,8 +35,23 @@ let currentFilter = 'todos';
 let productsCache = [];
 let unsubscribe = null;
 
-/* ========== INVENTORY API (shared with admin) ========== */
+/* ========== INVENTORY API (shared with admin) ==========
+   Storage model (fast first load):
+     products/{id}      → metadata + small thumbnails (thumbUrls) for the grid
+     productImages/{id} → full-resolution images (imageUrls), loaded on demand
+   The grid subscribes only to the light `products` docs, so the first paint no
+   longer downloads every full-size base64 image. The full image is fetched
+   only when the lightbox opens. */
 const productsCol = collection(db, 'products');
+
+// In-memory cache of full images keyed by product id (avoids refetching).
+const fullImageCache = new Map();
+
+/** Normalize an incoming product's images into an array of up to 2 data URLs. */
+function normalizeImages(data) {
+    if (Array.isArray(data.imageUrls)) return data.imageUrls.filter(Boolean).slice(0, 2);
+    return data.imageUrl ? [data.imageUrl] : [];
+}
 
 export const Inventory = {
     /** Live subscribe to all products. Returns unsubscribe fn. */
@@ -55,37 +71,100 @@ export const Inventory = {
         return snap.docs.map(d => ({ id: d.id, ...d.data() }));
     },
 
+    /** Fetch the full-resolution images for a product (cached). */
+    async getFullImages(id) {
+        if (fullImageCache.has(id)) return fullImageCache.get(id);
+        try {
+            const snap = await getDoc(doc(db, 'productImages', id));
+            const imgs = snap.exists() ? (snap.data().imageUrls || []).filter(Boolean) : [];
+            fullImageCache.set(id, imgs);
+            return imgs;
+        } catch (err) {
+            console.error('Error loading full images:', err);
+            return [];
+        }
+    },
+
     async add(data) {
-        const imageUrls = Array.isArray(data.imageUrls)
-            ? data.imageUrls.filter(Boolean).slice(0, 2)
-            : (data.imageUrl ? [data.imageUrl] : []);
+        const fullImages = normalizeImages(data);
+        const thumbUrls = await Promise.all(fullImages.map(u => makeThumb(u)));
         const payload = {
             name: data.name || '',
             type: data.type || 'oro',
             category: data.category || '',
             material: data.material || '',
             description: data.description || '',
-            imageUrls,
-            imageUrl: imageUrls[0] || '',
+            thumbUrls,
+            thumbUrl: thumbUrls[0] || '',
+            imageCount: fullImages.length,
             available: data.available !== false,
             visible: data.visible !== false,
             featured: data.featured === true,
             createdAt: serverTimestamp()
         };
-        return await addDoc(productsCol, payload);
+        const ref = await addDoc(productsCol, payload);
+        if (fullImages.length) {
+            await setDoc(doc(db, 'productImages', ref.id), { imageUrls: fullImages });
+        }
+        fullImageCache.set(ref.id, fullImages);
+        return ref;
     },
 
     async update(id, patch) {
         const update = { ...patch };
-        if (Array.isArray(update.imageUrls)) {
-            update.imageUrls = update.imageUrls.filter(Boolean).slice(0, 2);
-            update.imageUrl = update.imageUrls[0] || '';
+        // If images changed, regenerate thumbnails and store the full images apart.
+        if ('imageUrls' in update || 'imageUrl' in update) {
+            const fullImages = normalizeImages(update);
+            delete update.imageUrls;
+            delete update.imageUrl;
+            update.thumbUrls = await Promise.all(fullImages.map(u => makeThumb(u)));
+            update.thumbUrl = update.thumbUrls[0] || '';
+            update.imageCount = fullImages.length;
+            await setDoc(doc(db, 'productImages', id), { imageUrls: fullImages });
+            fullImageCache.set(id, fullImages);
         }
         await updateDoc(doc(db, 'products', id), update);
     },
 
     async remove(id) {
         await deleteDoc(doc(db, 'products', id));
+        fullImageCache.delete(id);
+        try { await deleteDoc(doc(db, 'productImages', id)); } catch (_) {}
+    },
+
+    /** One-time migration: move full images to productImages/ and add thumbnails.
+        Safe to run more than once (idempotent). */
+    async migrateToThumbnails(onProgress) {
+        const snap = await getDocs(query(productsCol, orderBy('createdAt', 'asc')));
+        const docs = snap.docs;
+        let done = 0, migrated = 0;
+        for (const d of docs) {
+            const p = d.data();
+            // Locate the full images: already in productImages, or legacy inline fields.
+            let full = [];
+            try {
+                const piSnap = await getDoc(doc(db, 'productImages', d.id));
+                if (piSnap.exists()) full = (piSnap.data().imageUrls || []).filter(Boolean);
+            } catch (_) {}
+            if (!full.length) full = normalizeImages(p);
+
+            if (full.length && (!Array.isArray(p.thumbUrls) || !p.thumbUrls.length || 'imageUrls' in p || 'imageUrl' in p)) {
+                const thumbUrls = await Promise.all(full.map(u => makeThumb(u)));
+                await setDoc(doc(db, 'productImages', d.id), { imageUrls: full });
+                await updateDoc(doc(db, 'products', d.id), {
+                    thumbUrls,
+                    thumbUrl: thumbUrls[0] || '',
+                    imageCount: full.length,
+                    imageUrls: deleteField(),
+                    imageUrl: deleteField()
+                });
+                fullImageCache.set(d.id, full);
+                migrated++;
+            }
+            done++;
+            if (onProgress) onProgress(done, docs.length);
+        }
+        return { total: docs.length, migrated };
     }
 };
 
@@ -115,6 +194,26 @@ export function compressImage(file, maxWidth = 1000, quality = 0.8) {
     });
 }
 
+/** Build a small, light thumbnail (data URL) from an existing image data URL.
+    Used for the product grid so the first paint stays fast. */
+export function makeThumb(dataUrl, maxWidth = 420, quality = 0.6) {
+    return new Promise((resolve, reject) => {
+        if (!dataUrl) { resolve(''); return; }
+        const img = new Image();
+        img.onload = () => {
+            const canvas = document.createElement('canvas');
+            const scale = Math.min(1, maxWidth / img.width);
+            canvas.width = Math.round(img.width * scale);
+            canvas.height = Math.round(img.height * scale);
+            const ctx = canvas.getContext('2d');
+            ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
+            resolve(canvas.toDataURL('image/jpeg', quality));
+        };
+        img.onerror = reject;
+        img.src = dataUrl;
+    });
+}
+
 /* ========== PUBLIC PAGE BOOTSTRAP ========== */
 document.addEventListener('DOMContentLoaded', () => {
     if (document.getElementById('productsGrid')) {
@@ -128,7 +227,14 @@ document.addEventListener('DOMContentLoaded', () => {
 });
 
 /* ========== IMAGE HELPERS ========== */
-function getImages(product) {
+// Light images used for the grid: prefer thumbnails, fall back to legacy full
+// images for products that haven't been migrated yet (keeps the site working
+// before the one-time migration runs).
+function getThumbs(product) {
+    if (Array.isArray(product.thumbUrls) && product.thumbUrls.length) {
+        return product.thumbUrls.filter(Boolean);
+    }
+    if (product.thumbUrl) return [product.thumbUrl];
     if (Array.isArray(product.imageUrls) && product.imageUrls.length) {
         return product.imageUrls.filter(Boolean);
     }
@@ -321,7 +427,7 @@ function initLightbox() {
         const idx = Number(thumb.dataset.thumbIdx);
         const pid = card.dataset.pid;
         const product = productsCache.find(p => p.id === pid);
-        const images = product ? getImages(product) : [];
+        const images = product ? getThumbs(product) : [];
         if (!images[idx]) return;
         const mainImg = card.querySelector('.product-img img, .exclusive-img img');
         if (mainImg) mainImg.src = images[idx];
@@ -339,9 +445,9 @@ function initLightbox() {
         const name = card?.querySelector('h4')?.textContent || '';
         const pid = card?.dataset.pid;
         const product = productsCache.find(p => p.id === pid);
-        const images = product ? getImages(product) : [img.src];
+        const thumbs = product ? getThumbs(product) : [img.src];
         const startIdx = Number(card?.dataset.current || 0);
-        openLightbox(images, startIdx, name);
+        openLightbox({ images: thumbs, startIndex: startIdx, caption: name, pid });
     });
 }
 
@@ -398,22 +504,39 @@ function applyTransform(img) {
     img.classList.toggle('zoomed', lbState.scale > 1);
 }
 
-function openLightbox(images, startIndex, caption) {
+async function openLightbox({ images, startIndex = 0, caption = '', pid = null }) {
     const el = document.getElementById('lightboxEl');
     if (!el) return;
-    const gallery = Array.isArray(images) ? images.filter(Boolean) : [images].filter(Boolean);
-    if (!gallery.length) return;
+    const gallery = (Array.isArray(images) ? images : [images]).filter(Boolean);
+    if (!gallery.length && !pid) return;
+    // Token guards against races (user closes or opens another product while
+    // the full-resolution images are still downloading).
+    const token = (lbState.loadToken = (lbState.loadToken || 0) + 1);
     lbState.gallery = gallery;
-    lbState.index = Math.max(0, Math.min(startIndex || 0, gallery.length - 1));
+    lbState.index = Math.max(0, Math.min(startIndex || 0, Math.max(0, gallery.length - 1)));
     lbState.caption = caption || '';
     const img = el.querySelector('img');
-    img.src = gallery[lbState.index];
+    if (gallery.length) img.src = gallery[lbState.index];   // show thumbnail instantly
     el.querySelector('.lightbox-caption').textContent = caption || '';
     el.classList.toggle('has-gallery', gallery.length > 1);
     updateGalleryCounter();
     el.classList.add('active');
     document.body.classList.add('lightbox-open');
     resetZoom(img);
+
+    // Upgrade to full-resolution images on demand.
+    if (pid) {
+        const full = await Inventory.getFullImages(pid);
+        if (token !== lbState.loadToken || !full.length) return;   // stale or nothing to upgrade
+        lbState.gallery = full;
+        el.classList.toggle('has-gallery', full.length > 1);
+        lbState.index = Math.min(lbState.index, full.length - 1);
+        const i = lbState.index;
+        const pre = new Image();
+        pre.onload = () => { if (token === lbState.loadToken) img.src = full[i]; };
+        pre.src = full[i];
+        updateGalleryCounter();
+    }
 }
 
 /* ========== CATEGORY PAGE ========== */
@@ -468,7 +591,7 @@ function renderCategoryProducts() {
     }
 
     grid.innerHTML = filtered.map(product => {
-        const images = getImages(product);
+        const images = getThumbs(product);
         const imgSrc = images[0] || '';
         const imgHtml = imgSrc
             ? `<img src="${escapeHtml(imgSrc)}" alt="${escapeHtml(product.name)}" loading="lazy">`
@@ -552,7 +675,7 @@ function renderFeatured() {
 
     grid.innerHTML = featured.map(p => {
         const isAvailable = p.available !== false;
-        const images = getImages(p);
+        const images = getThumbs(p);
         const imgSrc = images[0] || '';
         const imgHtml = imgSrc
             ? `<img src="${escapeHtml(imgSrc)}" alt="${escapeHtml(p.name)}" loading="lazy">`
